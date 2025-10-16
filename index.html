@@ -54,6 +54,19 @@
   </head>
 
   <body>
+    <!-- 🔐 LOGIN / SIGNUP SECTION -->
+<div id="authSection">
+  <h2>Welcome to HeyChat 👋</h2>
+  <input id="email" type="email" placeholder="Email"><br><br>
+  <input id="password" type="password" placeholder="Password"><br><br>
+  <button onclick="login()">Login</button>
+  <button onclick="signup()">Sign Up</button>
+</div>
+
+<!-- 💬 CHAT SECTION (hidden until login) -->
+<div id="chatSection" style="display:none;">
+  <!-- your chat box or messages go here -->
+</div>
     <h2>HeyChat 💬</h2>
 
     <div id="messages"></div>
