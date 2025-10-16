@@ -56,62 +56,63 @@
       <button onclick="sendMessage()">Send</button>
     </div>
 
-    <script>
-      // ✅ Your Firebase configuration
-      const firebaseConfig = {
-        apiKey: "AIzaSyAIVJcbUTIxZDd5oMUwvemk-FMiFneid80",
-        authDomain: "heychat-1aea9.firebaseapp.com",
-        projectId: "heychat-1aea9",
-        storageBucket: "heychat-1aea9.appspot.com",
-        messagingSenderId: "324327775275",
-        appId: "1:324327775275:web:28ecebf9147b87d1655e6e"
-      };
+    <!-- Firebase SDKs -->
+<script type="module">
+  // Import Firebase v9 modules directly from CDN
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.11/firebase-app.js";
+  import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.11/firebase-auth.js";
+  import { getFirestore } from "https://www.gstatic.com/firebasejs/9.6.11/firebase-firestore.js";
 
-      // ✅ Initialize Firebase
-      firebase.initializeApp(firebaseConfig);
-      const auth = firebase.auth();
-      const db = firebase.firestore();
+  // Your Firebase configuration (copy exactly from your console)
+  const firebaseConfig = {
+    apiKey: "AIzaSyAIVJcbUTIxZDd5oMUwvemk-FMiFneid80",
+    authDomain: "heychat-1aea9.firebaseapp.com",
+    projectId: "heychat-1aea9",
+    storageBucket: "heychat-1aea9.appspot.com",
+    messagingSenderId: "324327775275",
+    appId: "1:324327775275:web:28ecebf9147b87d1655e6e"
+  };
 
-      // --- Authentication functions ---
-      function signup() {
-        const email = document.getElementById("email").value;
-        const password = document.getElementById("password").value;
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
 
-        auth.createUserWithEmailAndPassword(email, password)
-          .then(() => alert("Signup successful! You can now log in."))
-          .catch(error => alert(error.message));
-      }
-
-      function login() {
-        const email = document.getElementById("email").value;
-        const password = document.getElementById("password").value;
-
-        auth.signInWithEmailAndPassword(email, password)
-          .then(() => {
-            document.getElementById("authSection").style.display = "none";
-            document.getElementById("chatSection").style.display = "block";
-          })
-          .catch(error => alert(error.message));
-      }
-
-      // --- Keep user logged in ---
-      auth.onAuthStateChanged(user => {
-        if (user) {
-          document.getElementById("authSection").style.display = "none";
-          document.getElementById("chatSection").style.display = "block";
-        } else {
-          document.getElementById("authSection").style.display = "block";
-          document.getElementById("chatSection").style.display = "none";
-        }
+  // --- Authentication functions ---
+  window.signup = function() {
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
+    createUserWithEmailAndPassword(auth, email, password)
+      .then((userCredential) => {
+        alert("Signup successful! You can now log in.");
+      })
+      .catch((error) => {
+        alert(error.message);
       });
+  }
 
-      // --- Placeholder for sendMessage() ---
-      function sendMessage() {
-        const text = document.getElementById("text").value;
-        if (text.trim() === "") return alert("Please type a message first!");
-        alert("Message sent: " + text);
-        document.getElementById("text").value = "";
-      }
-    </script>
+  window.login = function() {
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
+    signInWithEmailAndPassword(auth, email, password)
+      .then((userCredential) => {
+        document.getElementById("authSection").style.display = "none";
+        document.getElementById("chatSection").style.display = "block";
+      })
+      .catch((error) => {
+        alert(error.message);
+      });
+  }
+
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      document.getElementById("authSection").style.display = "none";
+      document.getElementById("chatSection").style.display = "block";
+    } else {
+      document.getElementById("authSection").style.display = "block";
+      document.getElementById("chatSection").style.display = "none";
+    }
+  });
+</script>
   </body>
       </html>
