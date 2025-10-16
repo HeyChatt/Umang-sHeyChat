@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>HeyChat 💬</title>
+
+    <!-- Firebase setup -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+
+    <style>
+      body {
+        font-family: Arial;
+        background: #f5f5f5;
+        text-align: center;
+        margin: 30px;
+      }
+      #messages {
+        border: 1px solid #ccc;
+        height: 300px;
+        width: 90%;
+        margin: 0 auto 10px;
+        padding: 10px;
+        background: white;
+        overflow-y: auto;
+      }
+      input {
+        width: 70%;
+        padding: 8px;
+      }
+      button {
+        padding: 8px 15px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <h2>HeyChat 💬</h2>
+
+    <div id="messages"></div>
+
+    <input type="text" id="text" placeholder="Type a message..." />
+    <button onclick="sendMessage()">Send</button>
+
+    <script src="main.js"></script>
+  </body>
+</html>
