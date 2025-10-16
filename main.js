@@ -36,4 +36,5 @@ db.collection("messages")
       const msg = doc.data();
       messages.innerHTML += `<p><b>${msg.name}:</b> ${msg.text}</p>`;
     });
+    messages.scrollTop = messages.scrollHeight; // auto-scroll
   });
