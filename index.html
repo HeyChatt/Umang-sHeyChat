@@ -4,56 +4,121 @@
     <meta charset="UTF-8" />
     <title>HeyChat 💬</title>
 
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-  import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-  import { getFirestore } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+    <style>
+      body {
+        font-family: Arial;
+        background: #f5f5f5;
+        text-align: center;
+        margin: 30px;
+      }
 
-  const firebaseConfig = {
-    apiKey: "YOUR_API_KEY_HERE",
-    authDomain: "heychat-1aea9.firebaseapp.com",
-    projectId: "heychat-1aea9",
-    storageBucket: "heychat-1aea9.appspot.com",
-    messagingSenderId: "324327775275",
-    appId: "1:324327775275:web:28ecebf9147b87d1655e6e"
-  };
+      #messages {
+        border: 1px solid #ccc;
+        height: 300px;
+        width: 90%;
+        margin: 0 auto 10px;
+        padding: 10px;
+        background: white;
+        overflow-y: auto;
+      }
 
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db = getFirestore(app);
+      input {
+        width: 70%;
+        padding: 8px;
+      }
 
-  window.signup = async function() {
-    const email = document.getElementById("email").value;
-    const password = document.getElementById("password").value;
-    try {
-      await createUserWithEmailAndPassword(auth, email, password);
-      alert("✅ Signup successful!");
-    } catch (error) {
-      alert("Error: " + error.message);
-    }
-  }
+      button {
+        padding: 8px 15px;
+      }
+    </style>
+  </head>
 
-  window.login = async function() {
-    const email = document.getElementById("email").value;
-    const password = document.getElementById("password").value;
-    try {
-      await signInWithEmailAndPassword(auth, email, password);
-      document.getElementById("authSection").style.display = "none";
-      document.getElementById("chatSection").style.display = "block";
-    } catch (error) {
-      alert("Error: " + error.message);
-    }
-  }
+  <body>
+    <!-- 🔐 LOGIN / SIGNUP SECTION -->
+    <div id="authSection">
+      <h2>Welcome to HeyChat 👋</h2>
+      <input id="email" type="email" placeholder="Email"><br><br>
+      <input id="password" type="password" placeholder="Password"><br><br>
+      <button onclick="login()">Login</button>
+      <button onclick="signup()">Sign Up</button>
+    </div>
 
-  onAuthStateChanged(auth, (user) => {
-    if (user) {
-      document.getElementById("authSection").style.display = "none";
-      document.getElementById("chatSection").style.display = "block";
-    } else {
-      document.getElementById("authSection").style.display = "block";
-      document.getElementById("chatSection").style.display = "none";
-    }
-  });
-</script>
+    <!-- 💬 CHAT SECTION (hidden until login) -->
+    <div id="chatSection" style="display:none;">
+      <h2>HeyChat 💬</h2>
+      <div id="messages"></div>
+      <input type="text" id="text" placeholder="Type a message..." />
+      <button onclick="sendMessage()">Send</button>
+    </div>
+
+    <!-- ✅ Firebase v11 Modular (latest working version) -->
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+      import {
+        getAuth,
+        createUserWithEmailAndPassword,
+        signInWithEmailAndPassword,
+        onAuthStateChanged
+      } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+      import { getFirestore } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+
+      // ✅ Your Firebase configuration (same values)
+      const firebaseConfig = {
+        apiKey: "AIzaSyAIVJcbUTIxZDd5oMUwvemk-FMiFneid80",
+        authDomain: "heychat-1aea9.firebaseapp.com",
+        projectId: "heychat-1aea9",
+        storageBucket: "heychat-1aea9.appspot.com",
+        messagingSenderId: "324327775275",
+        appId: "1:324327775275:web:28ecebf9147b87d1655e6e"
+      };
+
+      // ✅ Initialize Firebase (v9+ style)
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+      const db = getFirestore(app);
+
+      // --- 🔐 Authentication functions ---
+      window.signup = async function() {
+        const email = document.getElementById("email").value;
+        const password = document.getElementById("password").value;
+        try {
+          await createUserWithEmailAndPassword(auth, email, password);
+          alert("✅ Signup successful! You can now log in.");
+        } catch (error) {
+          alert("❌ Error: " + error.message);
+        }
+      };
+
+      window.login = async function() {
+        const email = document.getElementById("email").value;
+        const password = document.getElementById("password").value;
+        try {
+          await signInWithEmailAndPassword(auth, email, password);
+          document.getElementById("authSection").style.display = "none";
+          document.getElementById("chatSection").style.display = "block";
+        } catch (error) {
+          alert("❌ Error: " + error.message);
+        }
+      };
+
+      // --- 🔄 Keep user logged in ---
+      onAuthStateChanged(auth, (user) => {
+        if (user) {
+          document.getElementById("authSection").style.display = "none";
+          document.getElementById("chatSection").style.display = "block";
+        } else {
+          document.getElementById("authSection").style.display = "block";
+          document.getElementById("chatSection").style.display = "none";
+        }
+      });
+
+      // --- 💬 Simple message placeholder ---
+      window.sendMessage = function() {
+        const text = document.getElementById("text").value;
+        if (text.trim() === "") return alert("Please type a message first!");
+        alert("Message sent: " + text);
+        document.getElementById("text").value = "";
+      };
+    </script>
   </body>
-      </html>
+</html>
