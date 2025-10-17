@@ -30,60 +30,59 @@
       button {
         padding: 8px 15px;
       }
-    /* 💬 Chat bubble styles */
-.message {
-  max-width: 70%;
-  margin: 5px auto;
-  padding: 8px 12px;
-  border-radius: 12px;
-  display: inline-block;
-  text-align: left;
-}
 
-.sent {
-  background: #0078ff;
-  color: white;
-  float: right;
-  clear: both;
-}
+      /* 💬 Chat bubble styles */
+      .message {
+        max-width: 70%;
+        margin: 5px auto;
+        padding: 8px 12px;
+        border-radius: 12px;
+        display: inline-block;
+        text-align: left;
+      }
 
-.received {
-  background: #e5e5ea;
-  color: black;
-  float: left;
-  clear: both;
-}  
+      .sent {
+        background: #0078ff;
+        color: white;
+        float: right;
+        clear: both;
+      }
+
+      .received {
+        background: #e5e5ea;
+        color: black;
+        float: left;
+        clear: both;
+      }
     </style>
 
     <style>
-      
-/* 🌙 Dark mode styles */
-body.dark {
-  background-color: #0d1117;
-  color: #e6edf3;
-  transition: all 0.3s ease;
-}
+      /* 🌙 Dark mode styles */
+      body.dark {
+        background-color: #0d1117;
+        color: #e6edf3;
+        transition: all 0.3s ease;
+      }
 
-/* Make message boxes match dark theme */
-body.dark .message.sent {
-  background-color: #1f6feb;
-  color: white;
-}
+      body.dark .message.sent {
+        background-color: #1f6feb;
+        color: white;
+      }
 
-body.dark .message.received {
-  background-color: #161b22;
-  color: #c9d1d9;
-}
+      body.dark .message.received {
+        background-color: #161b22;
+        color: #c9d1d9;
+      }
 
-button {
-  transition: background 0.3s ease, color 0.3s ease;
-}
+      button {
+        transition: background 0.3s ease, color 0.3s ease;
+      }
     </style>
   </head>
 
   <body>
-    <button id="themeToggle"
-      style="position:absolute;top:10px;right:10px;">🌙</button>
+    <button id="themeToggle" style="position:absolute;top:10px;right:10px;">🌙</button>
+
     <!-- 🔐 LOGIN / SIGNUP SECTION -->
     <div id="authSection">
       <h2>Welcome to HeyChat 👋</h2>
@@ -105,152 +104,165 @@ button {
 
     <!-- ✅ Firebase v11 Modular (latest working version) -->
     <script type="module">
-  import { 
-    initializeApp 
-  } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-  
-  import { 
-    getAuth, 
-    createUserWithEmailAndPassword, 
-    signInWithEmailAndPassword, 
-    onAuthStateChanged 
-  } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-  
-  import { 
-    getFirestore, 
-    collection, 
-    addDoc, 
-    query, 
-    orderBy, 
-    onSnapshot, 
-    serverTimestamp 
-  } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+      import { 
+        initializeApp 
+      } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
 
-  // ✅ Your Firebase configuration
-  const firebaseConfig = {
-    apiKey: "AIzaSyAlVJcbUTlxZDd5oMUwvemk-FMiFneid80",
-    authDomain: "heychat-1aea9.firebaseapp.com",
-    projectId: "heychat-1aea9",
-    storageBucket: "heychat-1aea9.appspot.com",
-    messagingSenderId: "324327775275",
-    appId: "1:324327775275:web:28ecebf9147b87d1655e6e"
-  };
+      import { 
+        getAuth, 
+        createUserWithEmailAndPassword, 
+        signInWithEmailAndPassword, 
+        onAuthStateChanged, 
+        signOut
+      } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 
-  // ✅ Initialize Firebase
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db = getFirestore(app);
+      import { 
+        getFirestore, 
+        collection, 
+        addDoc, 
+        query, 
+        orderBy, 
+        onSnapshot, 
+        serverTimestamp 
+      } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
-  // --- 🔐 Authentication functions ---
-  window.signup = async function() {
-    const email = document.getElementById("email").value;
-    const password = document.getElementById("password").value;
-    try {
-      await createUserWithEmailAndPassword(auth, email, password);
-      alert("✅ Signup successful! You can now log in.");
-    } catch (error) {
-      alert("❌ Error: " + error.message);
-    }
-  };
+      // ✅ Firebase Config
+      const firebaseConfig = {
+        apiKey: "AIzaSyAlVJcbUTlxZDd5oMUwvemk-FMiFneid80",
+        authDomain: "heychat-1aea9.firebaseapp.com",
+        projectId: "heychat-1aea9",
+        storageBucket: "heychat-1aea9.appspot.com",
+        messagingSenderId: "324327775275",
+        appId: "1:324327775275:web:28ecebf9147b87d1655e6e"
+      };
 
-  window.signup = async function() {
-  alert("Signup button clicked!"); // 👈 paste this here
+      // ✅ Initialize Firebase
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+      const db = getFirestore(app);
 
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
-  try {
-    await createUserWithEmailAndPassword(auth, email, password);
-    alert("✅ Signup successful! You can now log in.");
-  } catch (error) {
-    alert("❌ Error: " + error.message);
-  }
-};
+      // --- 🔐 SIGNUP FUNCTION ---
+      function signup() {
+        const email = document.getElementById("email").value.trim();
+        const password = document.getElementById("password").value.trim();
 
-  // --- 🔄 Handle user login state ---
-  onAuthStateChanged(auth, (user) => {
-    if (user) {
-      document.getElementById("authSection").style.display = "none";
-      document.getElementById("chatSection").style.display = "block";
-      loadMessages(); // ✅ Start listening for messages
-    } else {
-      document.getElementById("authSection").style.display = "block";
-      document.getElementById("chatSection").style.display = "none";
-    }
-  });
+        if (!email || !password) {
+          alert("Please enter email and password.");
+          return;
+        }
 
-  // --- 💬 Send message to Firestore ---
-  window.sendMessage = async function() {
-    const textInput = document.getElementById("text");
-    const text = textInput.value.trim();
-    const user = auth.currentUser;
+        alert("Signup button clicked!");
 
-    if (!user) {
-      alert("Please log in first.");
-      return;
-    }
-    if (text === "") return;
+        createUserWithEmailAndPassword(auth, email, password)
+          .then(() => {
+            alert("✅ Signup successful! You can now log in.");
+          })
+          .catch((error) => {
+            alert("❌ Error: " + error.message);
+          });
+      }
 
-    try {
-      await addDoc(collection(db, "messages"), {
-        text: text,
-        user: user.email,
-        time: serverTimestamp()
+      // --- 🔐 LOGIN FUNCTION ---
+      function login() {
+        const email = document.getElementById("email").value.trim();
+        const password = document.getElementById("password").value.trim();
+
+        signInWithEmailAndPassword(auth, email, password)
+          .catch((error) => {
+            alert("❌ Error: " + error.message);
+          });
+      }
+
+      // --- 🚪 LOGOUT FUNCTION ---
+      function logout() {
+        signOut(auth);
+      }
+
+      // --- 🔄 AUTH STATE CHANGE ---
+      onAuthStateChanged(auth, (user) => {
+        if (user) {
+          document.getElementById("authSection").style.display = "none";
+          document.getElementById("chatSection").style.display = "block";
+          document.getElementById("userInfo").innerText = "Logged in as " + user.email;
+          loadMessages();
+        } else {
+          document.getElementById("authSection").style.display = "block";
+          document.getElementById("chatSection").style.display = "none";
+        }
       });
-      textInput.value = "";
-    } catch (error) {
-      console.error("Error sending message:", error);
-    }
-  };
 
-  // --- 👀 Load and display messages in real time ---
-  function loadMessages() {
-    const q = query(collection(db, "messages"), orderBy("time"));
-    const messagesDiv = document.getElementById("messages");
+      // --- 💬 SEND MESSAGE ---
+      function sendMessage() {
+        const textInput = document.getElementById("text");
+        const text = textInput.value.trim();
+        const user = auth.currentUser;
 
-    onSnapshot(q, (snapshot) => {
-  messagesDiv.innerHTML = "";
-  snapshot.forEach((doc) => {
-    const msg = doc.data();
-    const div = document.createElement("div");
-    div.classList.add("message");
+        if (!user) {
+          alert("Please log in first.");
+          return;
+        }
+        if (text === "") return;
 
-    if (msg.user === auth.currentUser.email) {
-      div.classList.add("sent");
-      div.innerHTML = `<b>You:</b> ${msg.text}`;
-    } else {
-      div.classList.add("received");
-      div.innerHTML = `<b>${msg.user.split("@")[0]}:</b> ${msg.text}`;
-    }
+        addDoc(collection(db, "messages"), {
+          text: text,
+          user: user.email,
+          time: serverTimestamp()
+        }).then(() => {
+          textInput.value = "";
+        }).catch((error) => {
+          console.error("Error sending message:", error);
+        });
+      }
 
-    messagesDiv.appendChild(div);
-  });
+      // --- 👀 LOAD MESSAGES ---
+      function loadMessages() {
+        const q = query(collection(db, "messages"), orderBy("time"));
+        const messagesDiv = document.getElementById("messages");
 
-  // ✅ Auto-scroll to bottom
-  setTimeout(() => messagesDiv.scrollTop = messagesDiv.scrollHeight, 100);
-});
+        onSnapshot(q, (snapshot) => {
+          messagesDiv.innerHTML = "";
+          snapshot.forEach((doc) => {
+            const msg = doc.data();
+            const div = document.createElement("div");
+            div.classList.add("message");
+
+            if (msg.user === auth.currentUser.email) {
+              div.classList.add("sent");
+              div.innerHTML = `<b>You:</b> ${msg.text}`;
+            } else {
+              div.classList.add("received");
+              div.innerHTML = `<b>${msg.user.split("@")[0]}:</b> ${msg.text}`;
+            }
+
+            messagesDiv.appendChild(div);
+          });
+          setTimeout(() => messagesDiv.scrollTop = messagesDiv.scrollHeight, 100);
+        });
+      }
+
+      // 🧩 Expose functions to buttons
+      window.signup = signup;
+      window.login = login;
+      window.logout = logout;
+      window.sendMessage = sendMessage;
     </script>
+
+    <!-- 🌙 Dark Mode Script -->
     <script>
-  // 🌙 Dark mode toggle logic
-  const themeToggle = document.getElementById("themeToggle");
-  const body = document.body;
+      const themeToggle = document.getElementById("themeToggle");
+      const body = document.body;
 
-  // Load saved theme (if user toggled before)
-  if (localStorage.getItem("theme") === "dark") {
-    body.classList.add("dark");
-    themeToggle.textContent = "☀️";
-  }
+      if (localStorage.getItem("theme") === "dark") {
+        body.classList.add("dark");
+        themeToggle.textContent = "☀️";
+      }
 
-  // Switch theme on click
-  themeToggle.addEventListener("click", () => {
-    body.classList.toggle("dark");
-    const darkMode = body.classList.contains("dark");
-
-    // Save preference
-    localStorage.setItem("theme", darkMode ? "dark" : "light");
-
-    // Change button emoji
-    themeToggle.textContent = darkMode ? "☀️" : "🌙";
-  });
+      themeToggle.addEventListener("click", () => {
+        body.classList.toggle("dark");
+        const darkMode = body.classList.contains("dark");
+        localStorage.setItem("theme", darkMode ? "dark" : "light");
+        themeToggle.textContent = darkMode ? "☀️" : "🌙";
+      });
     </script>
   </body>
 </html>
