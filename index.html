@@ -34,6 +34,7 @@
   </head>
 
   <body>
+    <button id="themeToggle" style="position:absolute;top:10px;right:10px;">🌙</button>
     <!-- 🔐 LOGIN / SIGNUP SECTION -->
     <div id="authSection">
       <h2>Welcome to HeyChat 👋</h2>
@@ -46,9 +47,11 @@
     <!-- 💬 CHAT SECTION (hidden until login) -->
     <div id="chatSection" style="display:none;">
       <h2>HeyChat 💬</h2>
+      <p id="userInfo" style="font-size:14px; color:#555;"></p>
       <div id="messages"></div>
       <input type="text" id="text" placeholder="Type a message..." />
       <button onclick="sendMessage()">Send</button>
+      <button onclick="logout()" style="margin-top:10px; background:red; color:white;">Logout</button>
     </div>
 
     <!-- ✅ Firebase v11 Modular (latest working version) -->
