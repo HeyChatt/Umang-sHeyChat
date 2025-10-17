@@ -53,72 +53,116 @@
 
     <!-- ✅ Firebase v11 Modular (latest working version) -->
     <script type="module">
-      import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-      import {
-        getAuth,
-        createUserWithEmailAndPassword,
-        signInWithEmailAndPassword,
-        onAuthStateChanged
-      } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-      import { getFirestore } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+  import { 
+    initializeApp 
+  } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+  
+  import { 
+    getAuth, 
+    createUserWithEmailAndPassword, 
+    signInWithEmailAndPassword, 
+    onAuthStateChanged 
+  } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+  
+  import { 
+    getFirestore, 
+    collection, 
+    addDoc, 
+    query, 
+    orderBy, 
+    onSnapshot, 
+    serverTimestamp 
+  } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
-      // ✅ Your Firebase configuration (same values)
-      const firebaseConfig = {
-  apiKey: "AIzaSyAlVJcbUTlxZDd5oMUwvemk-FMiFneid80",
-  authDomain: "heychat-1aea9.firebaseapp.com",
-  projectId: "heychat-1aea9",
-  storageBucket: "heychat-1aea9.firebasestorage.app",
-  messagingSenderId: "324327775275",
-  appId: "1:324327775275:web:28ecebf9147b87d1655e6e"
-};
+  // ✅ Your Firebase configuration
+  const firebaseConfig = {
+    apiKey: "AIzaSyAlVJcbUTlxZDd5oMUwvemk-FMiFneid80",
+    authDomain: "heychat-1aea9.firebaseapp.com",
+    projectId: "heychat-1aea9",
+    storageBucket: "heychat-1aea9.appspot.com",
+    messagingSenderId: "324327775275",
+    appId: "1:324327775275:web:28ecebf9147b87d1655e6e"
+  };
 
-      // ✅ Initialize Firebase (v9+ style)
-      const app = initializeApp(firebaseConfig);
-      const auth = getAuth(app);
-      const db = getFirestore(app);
+  // ✅ Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
 
-      // --- 🔐 Authentication functions ---
-      window.signup = async function() {
-        const email = document.getElementById("email").value;
-        const password = document.getElementById("password").value;
-        try {
-          await createUserWithEmailAndPassword(auth, email, password);
-          alert("✅ Signup successful! You can now log in.");
-        } catch (error) {
-          alert("❌ Error: " + error.message);
-        }
-      };
+  // --- 🔐 Authentication functions ---
+  window.signup = async function() {
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
+    try {
+      await createUserWithEmailAndPassword(auth, email, password);
+      alert("✅ Signup successful! You can now log in.");
+    } catch (error) {
+      alert("❌ Error: " + error.message);
+    }
+  };
 
-      window.login = async function() {
-        const email = document.getElementById("email").value;
-        const password = document.getElementById("password").value;
-        try {
-          await signInWithEmailAndPassword(auth, email, password);
-          document.getElementById("authSection").style.display = "none";
-          document.getElementById("chatSection").style.display = "block";
-        } catch (error) {
-          alert("❌ Error: " + error.message);
-        }
-      };
+  window.login = async function() {
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+    } catch (error) {
+      alert("❌ Error: " + error.message);
+    }
+  };
 
-      // --- 🔄 Keep user logged in ---
-      onAuthStateChanged(auth, (user) => {
-        if (user) {
-          document.getElementById("authSection").style.display = "none";
-          document.getElementById("chatSection").style.display = "block";
-        } else {
-          document.getElementById("authSection").style.display = "block";
-          document.getElementById("chatSection").style.display = "none";
-        }
+  // --- 🔄 Handle user login state ---
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      document.getElementById("authSection").style.display = "none";
+      document.getElementById("chatSection").style.display = "block";
+      loadMessages(); // ✅ Start listening for messages
+    } else {
+      document.getElementById("authSection").style.display = "block";
+      document.getElementById("chatSection").style.display = "none";
+    }
+  });
+
+  // --- 💬 Send message to Firestore ---
+  window.sendMessage = async function() {
+    const textInput = document.getElementById("text");
+    const text = textInput.value.trim();
+    const user = auth.currentUser;
+
+    if (!user) {
+      alert("Please log in first.");
+      return;
+    }
+    if (text === "") return;
+
+    try {
+      await addDoc(collection(db, "messages"), {
+        text: text,
+        user: user.email,
+        time: serverTimestamp()
       });
+      textInput.value = "";
+    } catch (error) {
+      console.error("Error sending message:", error);
+    }
+  };
 
-      // --- 💬 Simple message placeholder ---
-      window.sendMessage = function() {
-        const text = document.getElementById("text").value;
-        if (text.trim() === "") return alert("Please type a message first!");
-        alert("Message sent: " + text);
-        document.getElementById("text").value = "";
-      };
+  // --- 👀 Load and display messages in real time ---
+  function loadMessages() {
+    const q = query(collection(db, "messages"), orderBy("time"));
+    const messagesDiv = document.getElementById("messages");
+
+    onSnapshot(q, (snapshot) => {
+      messagesDiv.innerHTML = "";
+      snapshot.forEach((doc) => {
+        const msg = doc.data();
+        const p = document.createElement("p");
+        p.innerHTML = `<b>${msg.user || "Friend"}:</b> ${msg.text || ""}`;
+        messagesDiv.appendChild(p);
+      });
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    });
+  }
     </script>
   </body>
 </html>
