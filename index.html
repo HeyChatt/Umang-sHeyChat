@@ -74,46 +74,33 @@
         color: #c9d1d9;
       }
 
-      button {
-        transition: background 0.3s ease, color 0.3s ease;
-      }
       /* ✏️ Edit & 🗑️ Delete Buttons Style */
-.message button {
-  background-color: #f1f1f1;
-  border: none;
-  padding: 4px 8px;
-  margin: 3px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 13px;
-  transition: all 0.2s ease-in-out;
-}
+      .message button {
+        background-color: #f1f1f1;
+        border: none;
+        padding: 4px 8px;
+        margin: 3px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 13px;
+        transition: all 0.2s ease-in-out;
+      }
 
-.message button:hover {
-  background-color: #d9d9d9;
-}
+      .message button:hover {
+        background-color: #d9d9d9;
+      }
 
-.message button:active {
-  transform: scale(0.95);
-}
+      .message button:active {
+        transform: scale(0.95);
+      }
 
-.message.sent {
-  background-color: #e8f5e9; /* light green for your own messages */
-}
+      .message.sent {
+        background-color: #e8f5e9;
+      }
 
-.message.received {
-  background-color: #fff; /* white for others' messages */
-}
-
-.message {
-  padding: 8px 10px;
-  border-radius: 10px;
-  margin: 6px;
-  max-width: 80%;
-  text-align: left;
-  display: inline-block;
-  word-wrap: break-word;
-  }
+      .message.received {
+        background-color: #fff;
+      }
     </style>
   </head>
 
@@ -129,7 +116,7 @@
       <button onclick="signup()">Sign Up</button>
     </div>
 
-    <!-- 💬 CHAT SECTION (hidden until login) -->
+    <!-- 💬 CHAT SECTION -->
     <div id="chatSection" style="display:none;">
       <h2>HeyChat 💬</h2>
       <p id="userInfo" style="font-size:14px; color:#555;"></p>
@@ -146,7 +133,6 @@
       import {
         initializeApp
       } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-
       import {
         getAuth,
         createUserWithEmailAndPassword,
@@ -154,7 +140,6 @@
         onAuthStateChanged,
         signOut
       } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-
       import {
         getFirestore,
         collection,
@@ -162,6 +147,11 @@
         query,
         orderBy,
         onSnapshot,
+        doc,
+        getDoc,
+        setDoc,
+        updateDoc,
+        deleteDoc,
         serverTimestamp
       } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
@@ -180,15 +170,27 @@
       const auth = getAuth(app);
       const db = getFirestore(app);
 
+      // ---------- USERNAME SETUP ----------
+      async function setUsername(user) {
+        const username = prompt("Enter a username (this will be shown in chat):");
+        if (username && username.trim() !== "") {
+          await setDoc(doc(db, "users", user.uid), {
+            username: username.trim(),
+            email: user.email
+          });
+          alert("Username saved!");
+        }
+      }
+
       // --- 🔐 SIGNUP FUNCTION ---
       async function signup() {
         const email = document.getElementById("email").value.trim();
         const password = document.getElementById("password").value.trim();
         if (!email || !password) return alert("Please enter email and password.");
         try {
-          await createUserWithEmailAndPassword(auth, email, password);
-          alert("✅ Signup successful! You can now log in.");
-          setUsername(); // 👈 ask username after signup
+          const cred = await createUserWithEmailAndPassword(auth, email, password);
+          await setUsername(cred.user);
+          alert("✅ Signup successful!");
         } catch (error) {
           alert("❌ Error: " + error.message);
         }
@@ -200,7 +202,6 @@
         const password = document.getElementById("password").value.trim();
         try {
           await signInWithEmailAndPassword(auth, email, password);
-          setUsername(); // 👈 ask username after login
         } catch (error) {
           alert("❌ Error: " + error.message);
         }
@@ -211,47 +212,30 @@
         signOut(auth);
       }
 
-      // ---------- USERNAME SETUP ----------
-function setUsername() {
-  const user = firebase.auth().currentUser;
-  if (!user) return;
-
-  const username = prompt("Enter a username (this will be shown in chat):");
-  if (username && username.trim() !== "") {
-    db.collection("users").doc(user.uid).set({
-      username: username.trim(),
-      email: user.email
-    });
-    alert("Username saved!");
-  }
-                               }
       // --- 💬 SEND MESSAGE ---
-async function sendMessage(e) {
-  e.preventDefault(); // prevent page reload
-  const textInput = document.getElementById("text");
-  const text = textInput.value.trim();
+      async function sendMessage(e) {
+        e.preventDefault();
+        const textInput = document.getElementById("text");
+        const text = textInput.value.trim();
+        const user = auth.currentUser;
+        if (!user) return alert("Please log in first.");
+        if (text === "") return;
 
-  const user = auth.currentUser;
-  if (!user) return alert("Please log in first.");
-  if (text === "") return;
+        try {
+          const userDoc = await getDoc(doc(db, "users", user.uid));
+          const username = userDoc.exists() ? userDoc.data().username : user.email;
 
-  try {
-    // Get username from Firestore
-    const userDoc = await getDoc(doc(db, "users", user.uid));
-    const username = userDoc.exists() ? userDoc.data().username : user.email;
-
-    await addDoc(collection(db, "messages"), {
-      text: text,
-      name: username,
-      uid: user.uid,
-      time: serverTimestamp()
-    });
-
-    textInput.value = "";
-  } catch (error) {
-    console.error("Error sending message:", error);
-  }
-          }
+          await addDoc(collection(db, "messages"), {
+            text: text,
+            name: username,
+            uid: user.uid,
+            time: serverTimestamp()
+          });
+          textInput.value = "";
+        } catch (error) {
+          console.error("Error sending message:", error);
+        }
+      }
 
       // --- 👀 LOAD MESSAGES IN REAL TIME ---
       function loadMessages() {
@@ -260,49 +244,44 @@ async function sendMessage(e) {
 
         onSnapshot(q, (snapshot) => {
           messagesDiv.innerHTML = "";
-          snapshot.forEach((doc) => {
-            const msg = doc.data();
+          snapshot.forEach((docSnap) => {
+            const msg = docSnap.data();
             const div = document.createElement("div");
             div.classList.add("message");
 
-            // ✅ Chat bubble style + Edit/Delete buttons
-if (msg.uid === auth.currentUser?.uid) {
-  // Message from current user
-  div.classList.add("sent");
-  div.innerHTML = `
-    <b>You:</b> ${msg.text}
-    <div style="margin-top:4px;">
-      <button onclick="editMessage('${doc.id}', '${msg.text.replace(/'/g, "\\'")}')">✏️ Edit</button>
-      <button onclick="deleteMessage('${doc.id}')">🗑️ Delete</button>
-    </div>
-  `;
-} else {
-  // Message from others
-  div.classList.add("received");
-  div.innerHTML = `<b>${msg.name || "Anon"}:</b> ${msg.text}`;
-}
-messagesDiv.appendChild(div);
+            if (msg.uid === auth.currentUser?.uid) {
+              div.classList.add("sent");
+              div.innerHTML = `
+                <b>You:</b> ${msg.text}
+                <div style="margin-top:4px;">
+                  <button onclick="editMessage('${docSnap.id}', '${msg.text.replace(/'/g, "\\'")}')">✏️ Edit</button>
+                  <button onclick="deleteMessage('${docSnap.id}')">🗑️ Delete</button>
+                </div>
+              `;
+            } else {
+              div.classList.add("received");
+              div.innerHTML = `<b>${msg.name || "Anon"}:</b> ${msg.text}`;
+            }
+
+            messagesDiv.appendChild(div);
           });
-          setTimeout(() => {
-            messagesDiv.scrollTop = messagesDiv.scrollHeight;
-          }, 100);
+          messagesDiv.scrollTop = messagesDiv.scrollHeight;
         });
       }
-      // --- ✏️ EDIT MESSAGE ---
-async function editMessage(id, oldText) {
-  const newText = prompt("Edit your message:", oldText);
-  if (newText !== null && newText.trim() !== "") {
-    await updateDoc(doc(db, "messages", id), {
-      text: newText.trim()
-    });
-  }
-}
 
-// --- 🗑️ DELETE MESSAGE ---
-async function deleteMessage(id) {
-  if (confirm("Delete this message?")) {
-    await deleteDoc(doc(db, "messages", id));
-  }
+      // --- ✏️ EDIT MESSAGE ---
+      async function editMessage(id, oldText) {
+        const newText = prompt("Edit your message:", oldText);
+        if (newText !== null && newText.trim() !== "") {
+          await updateDoc(doc(db, "messages", id), { text: newText.trim() });
+        }
+      }
+
+      // --- 🗑️ DELETE MESSAGE ---
+      async function deleteMessage(id) {
+        if (confirm("Delete this message?")) {
+          await deleteDoc(doc(db, "messages", id));
+        }
       }
 
       // --- 🔄 AUTH STATE CHANGE ---
@@ -311,18 +290,20 @@ async function deleteMessage(id) {
           document.getElementById("authSection").style.display = "none";
           document.getElementById("chatSection").style.display = "block";
           document.getElementById("userInfo").innerText = "Logged in as " + user.email;
-          loadMessages();
           document.getElementById("chat-form").addEventListener("submit", sendMessage);
+          loadMessages();
         } else {
           document.getElementById("authSection").style.display = "block";
           document.getElementById("chatSection").style.display = "none";
         }
       });
 
-      // 🧩 Expose functions
+      // ✅ Expose functions globally
       window.signup = signup;
       window.login = login;
       window.logout = logout;
+      window.editMessage = editMessage;
+      window.deleteMessage = deleteMessage;
     </script>
 
     <!-- 🌙 Dark Mode Script -->
