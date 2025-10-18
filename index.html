@@ -77,6 +77,43 @@
       button {
         transition: background 0.3s ease, color 0.3s ease;
       }
+      /* ✏️ Edit & 🗑️ Delete Buttons Style */
+.message button {
+  background-color: #f1f1f1;
+  border: none;
+  padding: 4px 8px;
+  margin: 3px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.2s ease-in-out;
+}
+
+.message button:hover {
+  background-color: #d9d9d9;
+}
+
+.message button:active {
+  transform: scale(0.95);
+}
+
+.message.sent {
+  background-color: #e8f5e9; /* light green for your own messages */
+}
+
+.message.received {
+  background-color: #fff; /* white for others' messages */
+}
+
+.message {
+  padding: 8px 10px;
+  border-radius: 10px;
+  margin: 6px;
+  max-width: 80%;
+  text-align: left;
+  display: inline-block;
+  word-wrap: break-word;
+  }
     </style>
   </head>
 
