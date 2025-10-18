@@ -41,22 +41,33 @@
       }
 
       /* 🌙 Dark mode */
-      body.dark {
-        background: #0d1117;
-        color: #e6edf3;
-      }
+body.dark {
+  background: #0d1117;
+  color: #e6edf3;
+}
 
-      body.dark #messages {
-        background: #161b22;
-        border-color: #30363d;
-      }
+body.dark #messages {
+  background: #161b22;
+  border-color: #30363d;
+}
 
-      body.dark input,
-      body.dark button {
-        background: #21262d;
-        color: #e6edf3;
-        border-color: #30363d;
-      }
+body.dark input,
+body.dark button {
+  background: #21262d;
+  color: #e6edf3;
+  border-color: #30363d;
+}
+
+/* ✅ FIXED: Better contrast for message bubbles in dark mode */
+body.dark .sent {
+  background: #1f6feb; /* rich blue */
+  color: #ffffff;
+}
+
+body.dark .received {
+  background: #2d333b; /* soft dark gray */
+  color: #e6edf3;
+}
 
       #themeToggle {
         position: fixed;
