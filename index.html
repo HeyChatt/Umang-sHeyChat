@@ -18,258 +18,72 @@
         --transition: all 0.3s ease;
       }
 
-      * {
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0;
-      }
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body { font-family: "Poppins", Arial, sans-serif; background: var(--bg); color: var(--text); display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding: 20px; transition: var(--transition); }
+      h2 { margin-bottom: 15px; }
 
-      body {
-        font-family: "Poppins", Arial, sans-serif;
-        background: var(--bg);
-        color: var(--text);
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        min-height: 100vh;
-        padding: 20px;
-        transition: var(--transition);
-      }
+      /* dark mode */
+      body.dark { background: #0d1117; color: #e6edf3; }
+      body.dark #messages { background: #161b22; border-color: #30363d; }
+      body.dark input, body.dark button { background: #21262d; color: #e6edf3; border-color: #30363d; }
+      body.dark .sent { background: #1f6feb; color: #ffffff; }
+      body.dark .received { background: #2d333b; color: #e6edf3; }
 
-      h2 {
-        margin-bottom: 15px;
-      }
+      #themeToggle { position: fixed; top: 15px; right: 15px; background: var(--primary); color: #fff; border: none; border-radius: 50%; width: 40px; height: 40px; font-size: 18px; cursor: pointer; transition: var(--transition); box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
+      #themeToggle:hover { background: var(--primary-dark); transform: scale(1.05); }
 
-      /* 🌙 Dark mode */
-body.dark {
-  background: #0d1117;
-  color: #e6edf3;
-}
+      /* auth */
+      #authSection { background: var(--surface); padding: 25px; border-radius: var(--radius); box-shadow: 0 2px 8px rgba(0,0,0,0.1); text-align: center; max-width: 350px; width: 100%; }
+      #authSection input { width:100%; padding:10px; margin:8px 0; border:1px solid #ccc; border-radius:var(--radius); font-size:1rem; }
+      #authSection button { width:48%; padding:10px; margin:5px 1%; background:var(--primary); border:none; color:#fff; border-radius:var(--radius); font-weight:600; cursor:pointer; transition:var(--transition); }
+      #authSection button:hover { background:var(--primary-dark); }
 
-body.dark #messages {
-  background: #161b22;
-  border-color: #30363d;
-}
+      /* chat */
+      #chatSection { background: var(--surface); border-radius: var(--radius); width: 100%; max-width: 900px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); padding: 15px; display: none; flex-direction: column; gap: 10px; }
+      #workspace { display:flex; gap:12px; }
+      #usersPanel { width:240px; border:1px solid #eee; padding:8px; border-radius:10px; background:#fafafa; max-height:520px; overflow-y:auto; }
+      #usersPanel h3 { margin-bottom:8px; font-size:16px; }
+      #usersUl { list-style:none; padding:0; margin:0; }
+      .userItem { padding:8px; border-radius:8px; cursor:pointer; display:flex; justify-content:space-between; align-items:center; gap:8px; }
+      .userItem:hover { background:#f0f8ff; }
+      .userItem.active { background:#dfefff; }
+      .presence-dot { width:10px; height:10px; border-radius:50%; display:inline-block; margin-right:8px; }
+      .presence-online { background:#22c55e; } /* green */
+      .presence-offline { background:#cbd5e1; } /* gray */
 
-body.dark input,
-body.dark button {
-  background: #21262d;
-  color: #e6edf3;
-  border-color: #30363d;
-}
+      #messagesPanel { flex:1; display:flex; flex-direction:column; }
+      #userInfo { font-size:14px; color:gray; text-align:left; }
+      #messages { border:1px solid #ccc; height:400px; overflow-y:auto; padding:10px; background:var(--surface); border-radius:var(--radius); scroll-behavior:smooth; display:flex; flex-direction:column; gap:8px; }
+      .message { padding:10px 14px; border-radius:var(--radius); margin:6px 0; max-width:75%; word-wrap:break-word; animation:fadeIn 0.3s ease-in; display:inline-flex; flex-direction:column; gap:6px; }
+      .sent { background:var(--sent); align-self:flex-end; text-align:right; position:relative; }
+      .received { background:var(--received); align-self:flex-start; text-align:left; }
+      .message .meta { font-size:12px; color:#666; }
+      .message .controls { display:flex; gap:6px; justify-content:flex-end; }
 
-/* ✅ FIXED: Better contrast for message bubbles in dark mode */
-body.dark .sent {
-  background: #1f6feb; /* rich blue */
-  color: #ffffff;
-}
+      .read-receipt { font-size:11px; color:#2a7cda; margin-top:4px; align-self:flex-end; }
 
-body.dark .received {
-  background: #2d333b; /* soft dark gray */
-  color: #e6edf3;
-}
+      #typingIndicator { font-size:13px; color:#666; margin:6px 6px 0 6px; min-height:18px; }
 
-      #themeToggle {
-        position: fixed;
-        top: 15px;
-        right: 15px;
-        background: var(--primary);
-        color: #fff;
-        border: none;
-        border-radius: 50%;
-        width: 40px;
-        height: 40px;
-        font-size: 18px;
-        cursor: pointer;
-        transition: var(--transition);
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-      }
+      .message button { background:#e8e8e8; border:none; border-radius:8px; padding:3px 6px; margin:3px; font-size:12px; cursor:pointer; transition:var(--transition); }
+      .message button:hover { background:#ccc; }
 
-      #themeToggle:hover {
-        background: var(--primary-dark);
-        transform: scale(1.05);
-      }
+      #chat-form { display:flex; gap:10px; margin-top:8px; }
+      #chat-form input { flex:1; padding:10px; border:1px solid #ccc; border-radius:var(--radius); font-size:1rem; }
+      #chat-form button { background:var(--primary); border:none; color:#fff; border-radius:var(--radius); padding:0 16px; font-size:1rem; cursor:pointer; transition:var(--transition); }
+      #chat-form button:hover { background:var(--primary-dark); }
 
-      /* AUTH SECTION */
-      #authSection {
-        background: var(--surface);
-        padding: 25px;
-        border-radius: var(--radius);
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        text-align: center;
-        max-width: 350px;
-        width: 100%;
-      }
+      .logout-btn { background:red; color:#fff; border:none; padding:8px 16px; border-radius:var(--radius); font-weight:600; cursor:pointer; transition:var(--transition); }
+      .logout-btn:hover { background:#cc0000; }
 
-      #authSection input {
-        width: 100%;
-        padding: 10px;
-        margin: 8px 0;
-        border: 1px solid #ccc;
-        border-radius: var(--radius);
-        font-size: 1rem;
-      }
-
-      #authSection button {
-        width: 48%;
-        padding: 10px;
-        margin: 5px 1%;
-        background: var(--primary);
-        border: none;
-        color: #fff;
-        border-radius: var(--radius);
-        font-weight: 600;
-        cursor: pointer;
-        transition: var(--transition);
-      }
-
-      #authSection button:hover {
-        background: var(--primary-dark);
-      }
-
-      /* CHAT SECTION */
-      #chatSection {
-        background: var(--surface);
-        border-radius: var(--radius);
-        width: 100%;
-        max-width: 500px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        padding: 15px;
-        display: none;
-        flex-direction: column;
-        gap: 10px;
-      }
-
-      #userInfo {
-        font-size: 14px;
-        color: gray;
-        text-align: left;
-      }
-
-      #messages {
-        border: 1px solid #ccc;
-        height: 400px;
-        overflow-y: auto;
-        padding: 10px;
-        background: var(--surface);
-        border-radius: var(--radius);
-        scroll-behavior: smooth;
-      }
-
-      .message {
-        padding: 10px 14px;
-        border-radius: var(--radius);
-        margin: 6px 0;
-        max-width: 75%;
-        word-wrap: break-word;
-        animation: fadeIn 0.3s ease-in;
-      }
-
-      .sent {
-        background: var(--sent);
-        align-self: flex-end;
-        text-align: right;
-      }
-
-      .received {
-        background: var(--received);
-        align-self: flex-start;
-        text-align: left;
-      }
-
-      .message b {
-        display: block;
-        font-size: 0.9rem;
-        margin-bottom: 3px;
-      }
-
-      .message button {
-        background: #e8e8e8;
-        border: none;
-        border-radius: 8px;
-        padding: 3px 6px;
-        margin: 3px;
-        font-size: 12px;
-        cursor: pointer;
-        transition: var(--transition);
-      }
-
-      .message button:hover {
-        background: #ccc;
-      }
-
-      #chat-form {
-        display: flex;
-        gap: 10px;
-      }
-
-      #chat-form input {
-        flex: 1;
-        padding: 10px;
-        border: 1px solid #ccc;
-        border-radius: var(--radius);
-        font-size: 1rem;
-      }
-
-      #chat-form button {
-        background: var(--primary);
-        border: none;
-        color: #fff;
-        border-radius: var(--radius);
-        padding: 0 16px;
-        font-size: 1rem;
-        cursor: pointer;
-        transition: var(--transition);
-      }
-
-      #chat-form button:hover {
-        background: var(--primary-dark);
-      }
-
-      .logout-btn {
-        background: red;
-        color: #fff;
-        border: none;
-        padding: 8px 16px;
-        border-radius: var(--radius);
-        font-weight: 600;
-        cursor: pointer;
-        transition: var(--transition);
-      }
-
-      .logout-btn:hover {
-        background: #cc0000;
-      }
-
-      @keyframes fadeIn {
-        from {
-          opacity: 0;
-          transform: translateY(10px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
-
-      @media (max-width: 600px) {
-        body {
-          padding: 10px;
-        }
-        #chatSection {
-          padding: 10px;
-        }
-        #messages {
-          height: 350px;
-        }
-      }
+      @keyframes fadeIn { from { opacity:0; transform:translateY(10px);} to { opacity:1; transform:translateY(0);} }
+      @media (max-width:900px) { #workspace { flex-direction:column; } #usersPanel { width:100%; max-height:160px; } #messages { height:340px; } }
     </style>
   </head>
 
   <body>
     <button id="themeToggle">🌙</button>
 
-    <!-- 🔐 AUTH -->
+    <!-- AUTH -->
     <div id="authSection">
       <h2>Welcome to HeyChat 👋</h2>
       <input id="email" type="email" placeholder="Email" />
@@ -280,23 +94,50 @@ body.dark .received {
       </div>
     </div>
 
-    <!-- 💬 CHAT -->
+    <!-- CHAT -->
     <div id="chatSection">
       <h2 style="text-align:center;">HeyChat 💬</h2>
       <p id="userInfo"></p>
-      <div id="messages"></div>
-      <form id="chat-form">
-        <input type="text" id="text" placeholder="Type a message..." autocomplete="off" />
-        <button type="submit">Send</button>
-      </form>
-      <button class="logout-btn" id="logoutBtn">Logout</button>
+
+      <div id="workspace">
+        <aside id="usersPanel">
+          <h3>Users</h3>
+          <div id="usersListInfo" style="font-size:13px;color:#666;margin-bottom:6px;">Click a user for private chat — or "Global" for all</div>
+          <ul id="usersUl"></ul>
+          <hr style="margin:8px 0" />
+          <button id="globalBtn" style="width:100%;padding:8px;border-radius:8px;border:none;background:#f1f5f9;cursor:pointer">🔊 Global Chat</button>
+        </aside>
+
+        <section id="messagesPanel">
+          <div id="messages"></div>
+          <div id="typingIndicator"></div>
+
+          <form id="chat-form">
+            <input type="text" id="text" placeholder="Type a message..." autocomplete="off" />
+            <button type="submit">Send</button>
+          </form>
+
+          <div style="display:flex; gap:10px; margin-top:8px; align-items:center;">
+            <button type="button" id="recordBtn">🎙️ Record</button>
+            <button type="button" id="stopBtn" style="display:none;">⏹ Stop</button>
+            <div id="recordStatus" style="font-size:13px;color:#666"></div>
+          </div>
+        </section>
+      </div>
+
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-top:12px;">
+        <div id="signedAs" style="font-size:14px;color:#666"></div>
+        <div>
+          <button class="logout-btn" id="logoutBtn">Logout</button>
+        </div>
+      </div>
     </div>
 
-    <!-- ✅ Firebase -->
+    <!-- Firebase modular SDKs -->
     <script type="module">
-      import {
-        initializeApp
-      } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+
+      // auth
       import {
         getAuth,
         createUserWithEmailAndPassword,
@@ -304,6 +145,8 @@ body.dark .received {
         onAuthStateChanged,
         signOut
       } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+
+      // firestore
       import {
         getFirestore,
         collection,
@@ -316,9 +159,29 @@ body.dark .received {
         setDoc,
         updateDoc,
         deleteDoc,
-        serverTimestamp
+        serverTimestamp,
+        getDocs
       } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
+      // storage
+      import {
+        getStorage,
+        ref as storageRef,
+        uploadBytes,
+        getDownloadURL
+      } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-storage.js";
+
+      // realtime database (for presence + typing)
+      import {
+        getDatabase,
+        ref as dbRef,
+        onValue,
+        set as rdbSet,
+        onDisconnect,
+        remove as rdbRemove
+      } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+
+      // ---------- Firebase config (keep your config or replace) ----------
       const firebaseConfig = {
         apiKey: "AIzaSyAlVJcbUTlxZDd5oMUwvemk-FMiFneid80",
         authDomain: "heychat-1aea9.firebaseapp.com",
@@ -331,7 +194,10 @@ body.dark .received {
       const app = initializeApp(firebaseConfig);
       const auth = getAuth(app);
       const db = getFirestore(app);
+      const storage = getStorage(app);
+      const rdb = getDatabase(app);
 
+      // UI elements
       const emailEl = document.getElementById("email");
       const passEl = document.getElementById("password");
       const chatSection = document.getElementById("chatSection");
@@ -340,14 +206,41 @@ body.dark .received {
       const textEl = document.getElementById("text");
       const chatForm = document.getElementById("chat-form");
       const userInfo = document.getElementById("userInfo");
+      const usersUl = document.getElementById("usersUl");
+      const globalBtn = document.getElementById("globalBtn");
+      const signedAs = document.getElementById("signedAs");
+      const recordBtn = document.getElementById("recordBtn");
+      const stopBtn = document.getElementById("stopBtn");
+      const recordStatus = document.getElementById("recordStatus");
+      const typingIndicator = document.getElementById("typingIndicator");
+      const themeToggle = document.getElementById("themeToggle");
 
+      // state
+      let currentChatId = "global";
+      let currentChatPartner = null; // { uid, name }
+      let messagesUnsub = null;
+      let usersUnsub = null;
+      let presenceListeners = {}; // track per-user presence listeners
+      let typingListenerUnsub = null;
+      let partnerLastReadUnsub = null;
+      let localTypingTimeout = null;
+
+      // ---------- Auth / signup ----------
       async function setUsername(user) {
         const username = prompt("Enter a username for chat:");
         if (username && username.trim() !== "") {
           await setDoc(doc(db, "users", user.uid), {
             username: username.trim(),
-            email: user.email
+            email: user.email,
+            createdAt: serverTimestamp()
           });
+        } else {
+          // fallback to email-based username
+          await setDoc(doc(db, "users", user.uid), {
+            username: user.email.split("@")[0],
+            email: user.email,
+            createdAt: serverTimestamp()
+          }, { merge: true });
         }
       }
 
@@ -375,103 +268,484 @@ body.dark .received {
       }
 
       function logout() {
+        // clear presence on signout
+        if (auth.currentUser) {
+          const statusRef = dbRef(rdb, `status/${auth.currentUser.uid}`);
+          rdbSet(statusRef, { online: false, lastSeen: Date.now() });
+          // no onDisconnect cleanup here because signOut is explicit
+        }
         signOut(auth);
       }
 
+      // ---------- wire up controls ----------
+      document.getElementById("signupBtn").addEventListener("click", signup);
+      document.getElementById("loginBtn").addEventListener("click", login);
+      document.getElementById("logoutBtn").addEventListener("click", logout);
+      globalBtn.addEventListener("click", () => openChat("global", { uid: "global", name: "Global Chat" }));
+
+      // ---------- Chat: send message ----------
+      chatForm.addEventListener("submit", sendMessage);
       async function sendMessage(e) {
         e.preventDefault();
         const text = textEl.value.trim();
         const user = auth.currentUser;
         if (!user || !text) return;
-
         try {
           const userDoc = await getDoc(doc(db, "users", user.uid));
           const username = userDoc.exists() ? userDoc.data().username : user.email;
-          await addDoc(collection(db, "messages"), {
+          await addDoc(collection(db, "chats", currentChatId, "messages"), {
+            type: "text",
             text,
             name: username,
             uid: user.uid,
             time: serverTimestamp()
           });
           textEl.value = "";
+
+          // update my lastRead since I just sent & thus "read" up to now
+          await setDoc(doc(db, "chats", currentChatId, "lastRead", user.uid), { lastRead: serverTimestamp() }, { merge: true });
         } catch (err) {
           console.error(err);
         }
       }
 
-      function loadMessages() {
-        const q = query(collection(db, "messages"), orderBy("time"));
-        onSnapshot(q, (snapshot) => {
-          messagesEl.innerHTML = "";
-          snapshot.forEach((docSnap) => {
-            const msg = docSnap.data();
-            const div = document.createElement("div");
-            div.classList.add("message");
-            if (msg.uid === auth.currentUser?.uid) {
-              div.classList.add("sent");
-              div.innerHTML = `<b>You</b>${msg.text}
-                <div>
-                  <button onclick="editMessage('${docSnap.id}', '${msg.text.replace(/'/g, "\\'")}')">✏️</button>
-                  <button onclick="deleteMessage('${docSnap.id}')">🗑️</button>
-                </div>`;
+      // ---------- load users list (live) ----------
+      async function loadUsersList() {
+        if (usersUnsub) usersUnsub();
+        const q = query(collection(db, "users"), orderBy("createdAt"));
+        usersUl.innerHTML = "<li style='padding:8px;color:#666'>Loading users...</li>";
+        usersUnsub = onSnapshot(q, (snap) => {
+          usersUl.innerHTML = "";
+          snap.forEach(u => {
+            const data = u.data();
+            const li = document.createElement("li");
+            li.className = "userItem";
+            li.dataset.uid = u.id;
+            li.innerHTML = `<div style="display:flex;align-items:center"><span class="presence-dot presence-offline" id="presence_${u.id}"></span><span>${data.username || data.email}</span></div><div style="font-size:12px;color:#666">${u.id === auth.currentUser?.uid ? 'You' : ''}</div>`;
+            // don't allow clicking self
+            if (auth.currentUser && u.id !== auth.currentUser.uid) {
+              li.addEventListener("click", () => openPrivateChat(u.id, data.username || data.email));
             } else {
-              div.classList.add("received");
-              div.innerHTML = `<b>${msg.name || "Anon"}</b>${msg.text}`;
+              li.style.opacity = "0.9";
             }
-            messagesEl.appendChild(div);
+            usersUl.appendChild(li);
+
+            // attach presence listener for this user (RDB)
+            attachPresenceListener(u.id);
           });
-          messagesEl.scrollTop = messagesEl.scrollHeight;
         });
       }
 
-      async function editMessage(id, oldText) {
-        const newText = prompt("Edit your message:", oldText);
-        if (newText && newText.trim() !== "") {
-          await updateDoc(doc(db, "messages", id), { text: newText.trim() });
+      // ---------- presence (Realtime DB) ----------
+      function attachPresenceListener(uid) {
+        // avoid duplicate listeners
+        if (presenceListeners[uid]) return;
+        const statusRef = dbRef(rdb, `status/${uid}`);
+        presenceListeners[uid] = onValue(statusRef, (snap) => {
+          const el = document.getElementById(`presence_${uid}`);
+          if (!el) return;
+          const v = snap.val();
+          if (v && v.online) {
+            el.classList.remove("presence-offline");
+            el.classList.add("presence-online");
+            el.title = "Online";
+          } else {
+            el.classList.remove("presence-online");
+            el.classList.add("presence-offline");
+            if (v && v.lastSeen) {
+              const d = new Date(v.lastSeen);
+              el.title = `Last seen ${d.toLocaleString()}`;
+            } else {
+              el.title = "Offline";
+            }
+          }
+        });
+      }
+
+      // set my status to online, and configure onDisconnect to set offline
+      function startPresence() {
+        const user = auth.currentUser;
+        if (!user) return;
+        const statusRef = dbRef(rdb, `status/${user.uid}`);
+        // set online now
+        rdbSet(statusRef, { online: true, lastSeen: Date.now() }).catch(e => console.error(e));
+        // onDisconnect -> set offline with lastSeen
+        try {
+          onDisconnect(statusRef).set({ online: false, lastSeen: Date.now() });
+        } catch (err) {
+          // browsers may throw if not supported; ignore
         }
       }
 
-      async function deleteMessage(id) {
-        if (confirm("Delete this message?")) {
-          await deleteDoc(doc(db, "messages", id));
-        }
-      }
-
-      document.getElementById("signupBtn").addEventListener("click", signup);
-      document.getElementById("loginBtn").addEventListener("click", login);
-      document.getElementById("logoutBtn").addEventListener("click", logout);
-      chatForm.addEventListener("submit", sendMessage);
-
-      onAuthStateChanged(auth, (user) => {
-        if (user) {
-          authSection.style.display = "none";
-          chatSection.style.display = "flex";
-          userInfo.textContent = `Logged in as ${user.email}`;
-          loadMessages();
+      // ---------- typing indicator (Realtime DB) ----------
+      // We will set `/typing/{chatId}/{uid}` true while typing and remove it after idle
+      function setTyping(isTyping) {
+        const user = auth.currentUser;
+        if (!user || !currentChatId) return;
+        const tRef = dbRef(rdb, `typing/${currentChatId}/${user.uid}`);
+        if (isTyping) {
+          rdbSet(tRef, { typing: true, ts: Date.now() }).catch(console.error);
+          // make sure to clear after 4s of inactivity locally
+          if (localTypingTimeout) clearTimeout(localTypingTimeout);
+          localTypingTimeout = setTimeout(() => setTyping(false), 4000);
         } else {
-          authSection.style.display = "block";
-          chatSection.style.display = "none";
+          // remove node
+          rdbRemove(tRef).catch(console.error);
+        }
+      }
+
+      // subscribe to typing for current chat
+      function subscribeTyping(chatId) {
+        // remove previous listener by removing the path (we rely on onValue returning a function, but we used onValue earlier - for simplicity, we'll just reassign listener behavior)
+        if (typingListenerUnsub) {
+          typingListenerUnsub(); // previous is a cleanup function we store below
+          typingListenerUnsub = null;
+        }
+        typingIndicator.textContent = "";
+        if (!chatId) return;
+
+        const typingRef = dbRef(rdb, `typing/${chatId}`);
+        const listener = onValue(typingRef, (snap) => {
+          const data = snap.val();
+          if (!data) {
+            typingIndicator.textContent = "";
+            return;
+          }
+          // find other typers except me
+          const others = Object.keys(data).filter(uid => uid !== (auth.currentUser && auth.currentUser.uid));
+          if (others.length === 0) {
+            typingIndicator.textContent = "";
+          } else {
+            // show up to 2 names
+            (async () => {
+              const names = [];
+              for (let i = 0; i < Math.min(2, others.length); i++) {
+                const ux = others[i];
+                const userDoc = await getDoc(doc(db, "users", ux));
+                names.push(userDoc.exists() ? userDoc.data().username : ux);
+              }
+              typingIndicator.textContent = names.join(", ") + (others.length > 2 ? " and more are typing..." : " is typing...");
+            })();
+          }
+        });
+        // store cleanup
+        typingListenerUnsub = () => typingRef.off && typingRef.off() || listener; // some SDKs return unsubscribe; ensure safe
+      }
+
+      // wire typing from input
+      textEl.addEventListener("input", () => {
+        // if there's text, mark typing true, else false
+        if (textEl.value && textEl.value.trim().length > 0) setTyping(true);
+        else setTyping(false);
+      });
+
+      // when chat changes, subscribe to typing for that chat
+      function onChatChanged(newChatId) {
+        subscribeTyping(newChatId);
+      }
+
+      // ---------- read receipts (Firestore small doc per user) ----------
+      // We'll store per chat: /chats/{chatId}/lastRead/{uid} => { lastRead: Timestamp }
+      async function updateMyLastRead() {
+        const user = auth.currentUser;
+        if (!user || !currentChatId) return;
+        await setDoc(doc(db, "chats", currentChatId, "lastRead", user.uid), { lastRead: serverTimestamp() }, { merge: true });
+      }
+
+      // subscribe to partner's lastRead to show read receipts on my messages
+      function subscribePartnerLastRead(partnerUid) {
+        if (partnerLastReadUnsub) partnerLastReadUnsub();
+        partnerLastReadUnsub = null;
+        if (!partnerUid || partnerUid === "global") return;
+        const ref = doc(db, "chats", currentChatId, "lastRead", partnerUid);
+        // onSnapshot works on single doc: but here we don't have an onSnapshot import name change; reuse onSnapshot
+        partnerLastReadUnsub = onSnapshot(ref, (snap) => {
+          // re-render messages to update read receipts
+          // simple approach: fetch current messages and decorate
+          // we'll just re-run subscribeToMessages which will re-render; but to avoid re-subscribing messages, we can set a small flag and re-query messages
+          // For simplicity, re-render by re-calling subscribeToMessages (it unsubscribes and re-subscribes)
+          // but avoid infinite loop: subscribeToMessages will use onSnapshot for messages; this is acceptable
+          // Instead we will just update DOM: find messages with data-time <= lastRead and add small 'Seen' marker
+          const data = snap.exists() ? snap.data() : null;
+          applyReadReceipts(data ? data.lastRead : null);
+        }, (err) => console.error(err));
+      }
+
+      // apply read receipts to DOM based on partnerLastReadTimestamp (Firestore Timestamp)
+      function applyReadReceipts(lastReadTimestamp) {
+        // find my messages in DOM and add small note if seen
+        const myMessages = [...messagesEl.querySelectorAll(".message.sent")];
+        myMessages.forEach(node => {
+          // message time is stored in meta text as "... • HH:MM:SS" ; we don't have the timestamp value in DOM; better approach: when rendering we add data-time-ms attribute
+          const tms = node.dataset.timeMs ? parseInt(node.dataset.timeMs, 10) : 0;
+          // convert lastReadTimestamp to ms
+          const lr = lastReadTimestamp && lastReadTimestamp.seconds ? (lastReadTimestamp.seconds * 1000) : (lastReadTimestamp || 0);
+          let rr = node.querySelector(".read-receipt");
+          if (!rr) {
+            rr = document.createElement("div");
+            rr.className = "read-receipt";
+            node.appendChild(rr);
+          }
+          if (lr && tms && lr >= tms) {
+            rr.textContent = "Seen";
+          } else {
+            rr.textContent = "";
+          }
+        });
+      }
+
+      // ---------- Subscribe / render messages ----------
+      let lastRenderedMessageTimestamps = {}; // map id->ts to help update read receipts without reloading all
+      function subscribeToMessages(chatId) {
+        if (messagesUnsub) messagesUnsub();
+        messagesEl.innerHTML = "<div style='color:#666;padding:8px'>Loading messages...</div>";
+
+        const q = query(collection(db, "chats", chatId, "messages"), orderBy("time"));
+        messagesUnsub = onSnapshot(q, (snapshot) => {
+          messagesEl.innerHTML = "";
+          snapshot.forEach(docSnap => {
+            const data = docSnap.data();
+            renderMessage(docSnap.id, data);
+            lastRenderedMessageTimestamps[docSnap.id] = data.time && data.time.seconds ? data.time.seconds * 1000 : 0;
+          });
+          // scroll
+          messagesEl.scrollTop = messagesEl.scrollHeight;
+
+          // update my lastRead after rendering messages (we assume viewing means read)
+          updateMyLastRead();
+
+          // subscribe to partner's lastRead if private
+          if (currentChatPartner && currentChatPartner.uid !== "global") {
+            subscribePartnerLastRead(currentChatPartner.uid);
+          } else {
+            // global: no partner
+            if (partnerLastReadUnsub) { partnerLastReadUnsub(); partnerLastReadUnsub = null; }
+          }
+        }, (err) => console.error(err));
+      }
+
+      // helper to create DOM node for a message (adds data-time-ms for receipts)
+      function renderMessage(id, msg) {
+        const wrapper = document.createElement("div");
+        wrapper.className = "message " + (msg.uid === auth.currentUser?.uid ? "sent" : "received");
+        // attach time-ms for read receipts
+        const ms = msg.time && msg.time.seconds ? (msg.time.seconds * 1000) : Date.now();
+        wrapper.dataset.timeMs = ms;
+
+        const meta = document.createElement("div");
+        meta.className = "meta";
+        const ts = msg.time && msg.time.seconds ? new Date(msg.time.seconds * 1000).toLocaleTimeString() : "";
+        meta.textContent = `${msg.name || "Anon"} ${ts ? " • " + ts : ""}`;
+
+        const content = document.createElement("div");
+        if (msg.type === "audio" && msg.audioUrl) {
+          const audio = document.createElement("audio");
+          audio.controls = true;
+          audio.src = msg.audioUrl;
+          content.appendChild(audio);
+        } else {
+          content.textContent = msg.text || "";
+        }
+
+        wrapper.appendChild(meta);
+        wrapper.appendChild(content);
+
+        // controls (edit/delete) only for own messages
+        if (msg.uid === auth.currentUser?.uid) {
+          const controls = document.createElement("div");
+          controls.className = "controls";
+
+          if (msg.type === "text") {
+            const editBtn = document.createElement("button");
+            editBtn.textContent = "✏️";
+            editBtn.title = "Edit";
+            editBtn.addEventListener("click", async () => {
+              const newText = prompt("Edit your message:", msg.text || "");
+              if (newText !== null && newText.trim() !== "") {
+                try {
+                  await updateDoc(doc(db, "chats", currentChatId, "messages", id), { text: newText.trim() });
+                } catch (err) { console.error(err); }
+              }
+            });
+            controls.appendChild(editBtn);
+          }
+
+          const delBtn = document.createElement("button");
+          delBtn.textContent = "🗑️";
+          delBtn.title = "Delete";
+          delBtn.addEventListener("click", async () => {
+            if (confirm("Delete this message?")) {
+              try {
+                await deleteDoc(doc(db, "chats", currentChatId, "messages", id));
+              } catch (err) { console.error(err); }
+            }
+          });
+          controls.appendChild(delBtn);
+          wrapper.appendChild(controls);
+
+          // placeholder for read receipt
+          const rr = document.createElement("div");
+          rr.className = "read-receipt";
+          rr.textContent = "";
+          wrapper.appendChild(rr);
+        }
+
+        messagesEl.appendChild(wrapper);
+      }
+
+      // apply read receipts when partner lastRead updates
+      function applyReadReceiptsFromFirestoreTimestamp(ts) {
+        // ts is Firestore Timestamp or null
+        applyReadReceipts(ts);
+      }
+
+      // ---------- Voice recording / upload (unchanged) ----------
+      let mediaRecorder = null;
+      let audioChunks = [];
+
+      recordBtn.addEventListener("click", async () => {
+        if (!auth.currentUser) return alert("Please log in to record.");
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          mediaRecorder = new MediaRecorder(stream);
+          audioChunks = [];
+
+          mediaRecorder.ondataavailable = (e) => { if (e.data && e.data.size > 0) audioChunks.push(e.data); };
+
+          mediaRecorder.onstart = () => {
+            recordStatus.textContent = "Recording...";
+            recordBtn.style.display = "none";
+            stopBtn.style.display = "inline-block";
+            // stop typing while recording
+            setTyping(false);
+          };
+
+          mediaRecorder.onstop = async () => {
+            recordStatus.textContent = "";
+            recordBtn.style.display = "inline-block";
+            stopBtn.style.display = "none";
+
+            const blob = new Blob(audioChunks, { type: "audio/webm" });
+            const fileName = `voice_${Date.now()}.webm`;
+            const userUid = auth.currentUser.uid;
+            const storagePath = `voices/${currentChatId}/${userUid}_${fileName}`;
+            const ref = storageRef(storage, storagePath);
+
+            try {
+              await uploadBytes(ref, blob);
+              const url = await getDownloadURL(ref);
+
+              const userDoc = await getDoc(doc(db, "users", userUid));
+              const username = userDoc.exists() ? userDoc.data().username : auth.currentUser.email;
+              await addDoc(collection(db, "chats", currentChatId, "messages"), {
+                type: "audio",
+                audioUrl: url,
+                name: username,
+                uid: userUid,
+                time: serverTimestamp()
+              });
+
+              // update my lastRead after sending
+              await setDoc(doc(db, "chats", currentChatId, "lastRead", userUid), { lastRead: serverTimestamp() }, { merge: true });
+            } catch (err) {
+              console.error("Upload failed:", err);
+              alert("Audio upload failed: " + err.message);
+            }
+          };
+
+          mediaRecorder.start();
+        } catch (err) {
+          alert("Microphone access denied or not available: " + err.message);
         }
       });
 
-      window.editMessage = editMessage;
-      window.deleteMessage = deleteMessage;
-    </script>
+      stopBtn.addEventListener("click", () => {
+        if (mediaRecorder && mediaRecorder.state !== "inactive") mediaRecorder.stop();
+      });
 
-    <!-- 🌙 DARK MODE -->
-    <script>
-      const themeToggle = document.getElementById("themeToggle");
-      const body = document.body;
-      if (localStorage.getItem("theme") === "dark") {
-        body.classList.add("dark");
-        themeToggle.textContent = "☀️";
+      // ---------- chat switching & helpers ----------
+      function makeChatId(uid1, uid2) { return uid1 < uid2 ? `${uid1}_${uid2}` : `${uid2}_${uid1}`; }
+
+      async function openPrivateChat(partnerUid, partnerName) {
+        currentChatId = makeChatId(auth.currentUser.uid, partnerUid);
+        currentChatPartner = { uid: partnerUid, name: partnerName };
+        userInfo.textContent = `Private chat with ${partnerName}`;
+
+        // ensure chat doc exists with participants (useful for rules)
+        await setDoc(doc(db, "chats", currentChatId), { participants: [auth.currentUser.uid, partnerUid], createdAt: serverTimestamp() }, { merge: true });
+
+        // visually mark active user
+        document.querySelectorAll(".userItem").forEach(li => li.classList.remove("active"));
+        const activeLi = [...document.querySelectorAll(".userItem")].find(li => li.dataset.uid === partnerUid);
+        if (activeLi) activeLi.classList.add("active");
+
+        // subscribe messages & typing
+        subscribeToMessages(currentChatId);
+        onChatChanged(currentChatId);
+
+        // update my lastRead (entering chat means read)
+        updateMyLastRead();
       }
+
+      async function openChat(chatId = "global", partner = { uid: "global", name: "Global Chat" }) {
+        currentChatId = chatId;
+        currentChatPartner = chatId === "global" ? null : partner;
+        userInfo.textContent = chatId === "global" ? "Global chat" : `Private chat with ${partner.name}`;
+
+        await setDoc(doc(db, "chats", currentChatId), { createdAt: serverTimestamp() }, { merge: true });
+
+        document.querySelectorAll(".userItem").forEach(li => li.classList.remove("active"));
+        subscribeToMessages(currentChatId);
+        onChatChanged(currentChatId);
+        updateMyLastRead();
+      }
+
+      // ---------- onAuthStateChanged ----------
+      onAuthStateChanged(auth, async (user) => {
+        if (user) {
+          authSection.style.display = "none";
+          chatSection.style.display = "block";
+          signedAs.textContent = `Signed in as ${user.email}`;
+          // start presence handling
+          startPresence();
+          // load users & default chat
+          loadUsersList();
+          openChat("global");
+        } else {
+          authSection.style.display = "block";
+          chatSection.style.display = "none";
+          signedAs.textContent = "";
+          // cleanup listeners
+          if (messagesUnsub) messagesUnsub();
+          if (usersUnsub) usersUnsub();
+          if (partnerLastReadUnsub) partnerLastReadUnsub();
+          // clear typing for previous user if any
+          if (auth.currentUser) setTyping(false);
+        }
+      });
+
+      // ---------- when messages panel is scrolled or focused, update lastRead (user is viewing) ----------
+      let markReadDebounce = null;
+      messagesEl.addEventListener("scroll", () => {
+        if (markReadDebounce) clearTimeout(markReadDebounce);
+        markReadDebounce = setTimeout(() => updateMyLastRead(), 800);
+      });
+      messagesEl.addEventListener("mouseenter", () => updateMyLastRead());
+
+      // also update lastRead when window/tab becomes visible
+      document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") updateMyLastRead(); });
+
+      // when chat changes, subscribe/unsubscribe typing
+      function onChatChanged(newChatId) { subscribeTyping(newChatId); }
+
+      // ---------- Theme toggle (preserves existing) ----------
+      if (localStorage.getItem("theme") === "dark") { document.body.classList.add("dark"); themeToggle.textContent = "☀️"; }
       themeToggle.addEventListener("click", () => {
-        body.classList.toggle("dark");
-        const isDark = body.classList.contains("dark");
+        document.body.classList.toggle("dark");
+        const isDark = document.body.classList.contains("dark");
         localStorage.setItem("theme", isDark ? "dark" : "light");
         themeToggle.textContent = isDark ? "☀️" : "🌙";
       });
     </script>
   </body>
-        </html>
+  </html>
