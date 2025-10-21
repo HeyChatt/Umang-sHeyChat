@@ -123,10 +123,9 @@
   </div>
 
   <!-- Firebase compat SDKs -->
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js"></script>
   <script>
     // wrap after DOM ready
     document.addEventListener('DOMContentLoaded', () => {
@@ -135,14 +134,13 @@
       // Firebase config (your project - kept your values)
       // ----------------------
       const firebaseConfig = {
-        apiKey: "AIzaSyAIVJcbUTlxZDd5oMUvwemk-FMiFneid80",
-        authDomain: "heychat-1aea9.firebaseapp.com",
-        projectId: "heychat-1aea9",
-        storageBucket: "heychat-1aea9.appspot.com",
-        messagingSenderId: "324327775275",
-        appId: "1:324327775275:web:28ecebf9147b87d1655e6e"
-      };
-
+  apiKey: "AIzaSyAlVJcbUTlxZDd5oMUwvemk-FMiFneid80",
+  authDomain: "heychat-1aea9.firebaseapp.com",
+  projectId: "heychat-1aea9",
+  storageBucket: "heychat-1aea9.firebasestorage.app",
+  messagingSenderId: "324327775275",
+  appId: "1:324327775275:web:28ecebf9147b87d1655e6e"
+};
       firebase.initializeApp(firebaseConfig);
       const auth = firebase.auth();
       const db = firebase.firestore();
