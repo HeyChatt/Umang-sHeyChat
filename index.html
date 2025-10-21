@@ -1,545 +1,477 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>HeyChat — Private Chat + Local Voice</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>HeyChat 💬</title>
 
-  <style>
-    :root{
-      --primary:#0078ff; --primary-dark:#005fcc;
-      --bg:#f5f7fa; --surface:#fff; --text:#111;
-      --sent:#d2eaff; --received:#ececec; --radius:12px;
-    }
-    *{box-sizing:border-box;margin:0;padding:0}
-    body{font-family:Inter,system-ui,Arial; background:var(--bg); color:var(--text); min-height:100vh; padding:18px; transition:all .2s}
-    .app{max-width:1100px;margin:0 auto; display:flex; flex-direction:column; gap:14px}
-    .topbar{display:flex;justify-content:space-between;align-items:center}
-    .card{background:var(--surface);border-radius:12px;padding:14px;box-shadow:0 6px 18px rgba(2,6,23,0.06)}
-    /* auth */
-    #authCard{width:360px;margin:40px auto}
-    #authCard input{width:100%;padding:10px;margin:8px 0;border-radius:10px;border:1px solid #ddd}
-    #authCard .btn{padding:10px 12px;border-radius:10px;border:none;background:var(--primary);color:#fff;cursor:pointer}
-    #authCard .btn.secondary{background:#0b76ff;opacity:.95}
-    /* workspace */
-    #workspace{display:flex;gap:12px}
-    /* users panel */
-    #usersPanel{width:260px;min-height:520px;max-height:75vh;overflow:auto}
-    #usersPanel h3{margin-bottom:8px}
-    #usersUl{list-style:none;padding:6px;display:flex;flex-direction:column;gap:6px}
-    .userItem{padding:8px;border-radius:8px;display:flex;justify-content:space-between;align-items:center;cursor:pointer}
-    .userItem:hover{background:#f0f8ff}
-    .userItem.active{background:#dfefff}
-    .presence{width:10px;height:10px;border-radius:50%;margin-right:8px}
-    .on{background:#22c55e}.off{background:#cbd5e1}
-    /* chat panel */
-    #chatPanel{flex:1;display:flex;flex-direction:column;gap:8px;min-height:520px;max-height:75vh}
-    #messages{flex:1;overflow:auto;padding:12px;border-radius:12px;border:1px solid #e6e9ee;background:var(--surface);display:flex;flex-direction:column;gap:10px}
-    .message{max-width:76%;padding:8px 12px;border-radius:12px;display:flex;flex-direction:column;gap:6px;word-wrap:break-word}
-    .sent{background:var(--sent);align-self:flex-end;text-align:right}
-    .received{background:var(--received);align-self:flex-start;text-align:left}
-    .meta{font-size:12px;color:#666}
-    .controls{display:flex;gap:6px;justify-content:flex-end}
-    .controls button{border:0;background:#e8e8e8;padding:4px 6px;border-radius:8px;cursor:pointer}
-    #composer{display:flex;gap:8px;align-items:center}
-    #composer input{flex:1;padding:10px;border-radius:10px;border:1px solid #ddd}
-    .btn-primary{background:var(--primary);color:#fff;border:0;padding:10px 12px;border-radius:10px;cursor:pointer}
-    .btn-muted{background:#f1f5f9;padding:10px;border-radius:10px;border:0;cursor:pointer}
-    #typing{min-height:18px;color:#666;font-size:13px}
-    /* small */
-    .small{font-size:13px;color:#666}
-    /* dark */
-    body.dark{background:#0b1220;color:#e6edf3}
-    body.dark .card{background:#0f1418}
-    body.dark #messages{background:#0b1115;border-color:#23282d}
-    body.dark .sent{background:#1f6feb;color:#fff}
-    body.dark .received{background:#22272d;color:#e6edf3}
-    @media(max-width:900px){
-      #workspace{flex-direction:column}
-      #usersPanel{width:100%;max-height:160px}
-      #messages{max-height:44vh}
-      #authCard{width:92%}
-    }
-  </style>
-</head>
-<body>
-  <div class="app">
-    <div class="topbar">
-      <h1 style="font-size:20px">HeyChat 💬</h1>
-      <div>
-        <button id="themeToggle" class="btn-muted" title="Toggle theme">🌙</button>
-      </div>
-    </div>
+    <style>
+      :root {
+        --primary: #0078ff;
+        --primary-dark: #005fcc;
+        --bg: #f5f7fa;
+        --surface: #ffffff;
+        --text: #222;
+        --sent: #d2eaff;
+        --received: #ececec;
+        --radius: 12px;
+        --transition: all 0.3s ease;
+      }
 
-    <!-- AUTH CARD -->
-    <div id="authCard" class="card">
-      <h2 style="text-align:center;margin-bottom:8px">Welcome to HeyChat</h2>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family: "Poppins", Arial, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        min-height: 100vh;
+        padding: 20px;
+        transition: var(--transition);
+      }
+
+      h2 {
+        margin-bottom: 15px;
+      }
+
+      /* 🌙 Dark mode */
+body.dark {
+  background: #0d1117;
+  color: #e6edf3;
+}
+
+body.dark #messages {
+  background: #161b22;
+  border-color: #30363d;
+}
+
+body.dark input,
+body.dark button {
+  background: #21262d;
+  color: #e6edf3;
+  border-color: #30363d;
+}
+
+/* ✅ FIXED: Better contrast for message bubbles in dark mode */
+body.dark .sent {
+  background: #1f6feb; /* rich blue */
+  color: #ffffff;
+}
+
+body.dark .received {
+  background: #2d333b; /* soft dark gray */
+  color: #e6edf3;
+}
+
+      #themeToggle {
+        position: fixed;
+        top: 15px;
+        right: 15px;
+        background: var(--primary);
+        color: #fff;
+        border: none;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        font-size: 18px;
+        cursor: pointer;
+        transition: var(--transition);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+      }
+
+      #themeToggle:hover {
+        background: var(--primary-dark);
+        transform: scale(1.05);
+      }
+
+      /* AUTH SECTION */
+      #authSection {
+        background: var(--surface);
+        padding: 25px;
+        border-radius: var(--radius);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        text-align: center;
+        max-width: 350px;
+        width: 100%;
+      }
+
+      #authSection input {
+        width: 100%;
+        padding: 10px;
+        margin: 8px 0;
+        border: 1px solid #ccc;
+        border-radius: var(--radius);
+        font-size: 1rem;
+      }
+
+      #authSection button {
+        width: 48%;
+        padding: 10px;
+        margin: 5px 1%;
+        background: var(--primary);
+        border: none;
+        color: #fff;
+        border-radius: var(--radius);
+        font-weight: 600;
+        cursor: pointer;
+        transition: var(--transition);
+      }
+
+      #authSection button:hover {
+        background: var(--primary-dark);
+      }
+
+      /* CHAT SECTION */
+      #chatSection {
+        background: var(--surface);
+        border-radius: var(--radius);
+        width: 100%;
+        max-width: 500px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        padding: 15px;
+        display: none;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      #userInfo {
+        font-size: 14px;
+        color: gray;
+        text-align: left;
+      }
+
+      #messages {
+        border: 1px solid #ccc;
+        height: 400px;
+        overflow-y: auto;
+        padding: 10px;
+        background: var(--surface);
+        border-radius: var(--radius);
+        scroll-behavior: smooth;
+      }
+
+      .message {
+        padding: 10px 14px;
+        border-radius: var(--radius);
+        margin: 6px 0;
+        max-width: 75%;
+        word-wrap: break-word;
+        animation: fadeIn 0.3s ease-in;
+      }
+
+      .sent {
+        background: var(--sent);
+        align-self: flex-end;
+        text-align: right;
+      }
+
+      .received {
+        background: var(--received);
+        align-self: flex-start;
+        text-align: left;
+      }
+
+      .message b {
+        display: block;
+        font-size: 0.9rem;
+        margin-bottom: 3px;
+      }
+
+      .message button {
+        background: #e8e8e8;
+        border: none;
+        border-radius: 8px;
+        padding: 3px 6px;
+        margin: 3px;
+        font-size: 12px;
+        cursor: pointer;
+        transition: var(--transition);
+      }
+
+      .message button:hover {
+        background: #ccc;
+      }
+
+      #chat-form {
+        display: flex;
+        gap: 10px;
+      }
+
+      #chat-form input {
+        flex: 1;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: var(--radius);
+        font-size: 1rem;
+      }
+
+      #chat-form button {
+        background: var(--primary);
+        border: none;
+        color: #fff;
+        border-radius: var(--radius);
+        padding: 0 16px;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: var(--transition);
+      }
+
+      #chat-form button:hover {
+        background: var(--primary-dark);
+      }
+
+      .logout-btn {
+        background: red;
+        color: #fff;
+        border: none;
+        padding: 8px 16px;
+        border-radius: var(--radius);
+        font-weight: 600;
+        cursor: pointer;
+        transition: var(--transition);
+      }
+
+      .logout-btn:hover {
+        background: #cc0000;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @media (max-width: 600px) {
+        body {
+          padding: 10px;
+        }
+        #chatSection {
+          padding: 10px;
+        }
+        #messages {
+          height: 350px;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <button id="themeToggle">🌙</button>
+
+    <!-- 🔐 AUTH -->
+    <div id="authSection">
+      <h2>Welcome to HeyChat 👋</h2>
       <input id="email" type="email" placeholder="Email" />
       <input id="password" type="password" placeholder="Password" />
-      <div style="display:flex;gap:8px;margin-top:8px">
-        <button id="loginBtn" class="btn-primary" style="flex:1">Login</button>
-        <button id="signupBtn" class="btn-muted" style="flex:1">Sign Up</button>
+      <div>
+        <button id="loginBtn">Login</button>
+        <button id="signupBtn">Sign Up</button>
       </div>
-      <p class="small" style="text-align:center;margin-top:8px">After signup you'll be asked for a username.</p>
     </div>
 
-    <!-- WORKSPACE -->
-    <div id="workspace" style="display:none">
-      <!-- users -->
-      <aside id="usersPanel" class="card">
-        <div style="display:flex;justify-content:space-between;align-items:center">
-          <h3>People</h3>
-          <button id="globalBtn" class="btn-muted" title="Go to global chat">🔊 Global</button>
-        </div>
-        <div id="usersListInfo" class="small" style="margin-bottom:8px;color:#666">Click a user to open a private chat</div>
-        <ul id="usersUl"></ul>
-      </aside>
-
-      <!-- chat -->
-      <section id="chatPanel" class="card">
-        <div style="display:flex;justify-content:space-between;align-items:center">
-          <div>
-            <strong id="chatTitle">Global Chat</strong>
-            <div class="small" id="chatSubtitle" style="margin-top:4px;color:#666">Public room for everyone</div>
-          </div>
-          <div class="small">
-            <span id="signedInAs"></span>
-            <button id="logoutBtn" class="btn-muted" style="margin-left:8px">Logout</button>
-          </div>
-        </div>
-
-        <div id="messages"></div>
-        <div id="typing" class="small"></div>
-
-        <div id="composer">
-          <input id="textInput" placeholder="Type a message..." autocomplete="off" />
-          <button id="sendBtn" class="btn-primary">Send</button>
-          <button id="recordBtn" class="btn-muted" title="Record voice">🎙️</button>
-          <button id="stopBtn" class="btn-muted" style="display:none">⏹ Stop</button>
-        </div>
-        <div id="recordStatus" class="small" style="margin-top:6px;color:#666"></div>
-      </section>
+    <!-- 💬 CHAT -->
+    <div id="chatSection">
+      <h2 style="text-align:center;">HeyChat 💬</h2>
+      <p id="userInfo"></p>
+      <div id="messages"></div>
+      <form id="chat-form">
+        <input type="text" id="text" placeholder="Type a message..." autocomplete="off" />
+        <button type="submit">Send</button>
+      </form>
+      <button class="logout-btn" id="logoutBtn">Logout</button>
     </div>
-  </div>
 
-  <!-- Firebase compat SDKs -->
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js"></script>
-  <script>
-    // wrap after DOM ready
-    document.addEventListener('DOMContentLoaded', () => {
+    <!-- ✅ Firebase -->
+    <script type="module">
+      import {
+        initializeApp
+      } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+      import {
+        getAuth,
+        createUserWithEmailAndPassword,
+        signInWithEmailAndPassword,
+        onAuthStateChanged,
+        signOut
+      } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+      import {
+        getFirestore,
+        collection,
+        addDoc,
+        query,
+        orderBy,
+        onSnapshot,
+        doc,
+        getDoc,
+        setDoc,
+        updateDoc,
+        deleteDoc,
+        serverTimestamp
+      } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
-      // ----------------------
-      // Firebase config (your project - kept your values)
-      // ----------------------
       const firebaseConfig = {
-  apiKey: "AIzaSyAlVJcbUTlxZDd5oMUwvemk-FMiFneid80",
-  authDomain: "heychat-1aea9.firebaseapp.com",
-  projectId: "heychat-1aea9",
-  storageBucket: "heychat-1aea9.firebasestorage.app",
-  messagingSenderId: "324327775275",
-  appId: "1:324327775275:web:28ecebf9147b87d1655e6e"
-};
-      firebase.initializeApp(firebaseConfig);
-      const auth = firebase.auth();
-      const db = firebase.firestore();
-
-      // UI refs
-      const authCard = document.getElementById('authCard');
-      const workspace = document.getElementById('workspace');
-      const usersUl = document.getElementById('usersUl');
-      const usersListInfo = document.getElementById('usersListInfo');
-      const messagesEl = document.getElementById('messages');
-      const textInput = document.getElementById('textInput');
-      const sendBtn = document.getElementById('sendBtn');
-      const recordBtn = document.getElementById('recordBtn');
-      const stopBtn = document.getElementById('stopBtn');
-      const recordStatus = document.getElementById('recordStatus');
-      const chatTitle = document.getElementById('chatTitle');
-      const chatSubtitle = document.getElementById('chatSubtitle');
-      const signedInAs = document.getElementById('signedInAs');
-      const typingEl = document.getElementById('typing');
-      const globalBtn = document.getElementById('globalBtn');
-      const themeToggle = document.getElementById('themeToggle');
-
-      const loginBtn = document.getElementById('loginBtn');
-      const signupBtn = document.getElementById('signupBtn');
-      const logoutBtn = document.getElementById('logoutBtn');
-
-      // state
-      let currentChatId = 'global'; // 'global' or deterministic 'uidA_uidB'
-      let currentPartner = null; // { uid, name } if private
-      let messagesUnsub = null;
-      let usersUnsub = null;
-
-      // ---------- theme ----------
-      if (localStorage.getItem('theme') === 'dark') {
-        document.body.classList.add('dark');
-        themeToggle.textContent = '☀️';
-      }
-      themeToggle.addEventListener('click', () => {
-        document.body.classList.toggle('dark');
-        const isDark = document.body.classList.contains('dark');
-        localStorage.setItem('theme', isDark ? 'dark' : 'light');
-        themeToggle.textContent = isDark ? '☀️' : '🌙';
-      });
-
-      // ---------- signup/login/logout ----------
-      signupBtn.addEventListener('click', async () => {
-        const email = document.getElementById('email').value.trim();
-        const pw = document.getElementById('password').value;
-        if (!email || !pw) return alert('Enter email & password');
-        try {
-          const cred = await auth.createUserWithEmailAndPassword(email, pw);
-          // ask username and save
-          const username = prompt('Choose a username (display name):', email.split('@')[0]) || email.split('@')[0];
-          await db.collection('users').doc(cred.user.uid).set({ username: username.trim(), email: email, createdAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
-          alert('Signed up!');
-        } catch (err) {
-          alert('Signup error: ' + err.message);
-          console.error(err);
-        }
-      });
-
-      loginBtn.addEventListener('click', async () => {
-        const email = document.getElementById('email').value.trim();
-        const pw = document.getElementById('password').value;
-        try {
-          await auth.signInWithEmailAndPassword(email, pw);
-        } catch (err) {
-          alert('Login error: ' + err.message);
-          console.error(err);
-        }
-      });
-
-      logoutBtn.addEventListener('click', async () => {
-        try {
-          await auth.signOut();
-        } catch (err) { console.error(err) }
-      });
-
-      // ---------- helper: deterministic chat id ----------
-      function makeChatId(uid1, uid2) {
-        return uid1 < uid2 ? uid1 + '_' + uid2 : uid2 + '_' + uid1;
-      }
-
-      // ---------- load users (live) ----------
-      async function loadUsersList() {
-        if (usersUnsub) usersUnsub();
-        usersUl.innerHTML = '<li class="small" style="padding:8px;color:#666">Loading...</li>';
-        usersUnsub = db.collection('users').orderBy('createdAt').onSnapshot(snap => {
-          usersUl.innerHTML = '';
-          snap.forEach(doc => {
-            const data = doc.data();
-            const uid = doc.id;
-            const li = document.createElement('li');
-            li.className = 'userItem';
-            li.dataset.uid = uid;
-            li.innerHTML = `<div style="display:flex;align-items:center"><span id="dot_${uid}" class="presence off"></span><strong style="margin-left:6px">${data.username || data.email}</strong></div><div class="small">${uid===auth.currentUser.uid ? 'You' : ''}</div>`;
-            if (uid !== auth.currentUser.uid) {
-              li.addEventListener('click', () => openPrivateChat(uid, data.username || data.email));
-            } else {
-              li.style.opacity = 0.9;
-            }
-            usersUl.appendChild(li);
-          });
-        }, err => { console.error('users load err', err) });
-      }
-
-      // ---------- open chats ----------
-      async function openGlobal() {
-        currentChatId = 'global';
-        currentPartner = null;
-        chatTitle.textContent = 'Global Chat';
-        chatSubtitle.textContent = 'Public room for everyone';
-        document.querySelectorAll('.userItem').forEach(x=>x.classList.remove('active'));
-        await ensureChatDoc(currentChatId);
-        subscribeMessages(currentChatId);
-      }
-
-      async function openPrivateChat(partnerUid, partnerName) {
-        currentChatId = makeChatId(auth.currentUser.uid, partnerUid);
-        currentPartner = { uid: partnerUid, name: partnerName };
-        chatTitle.textContent = 'Chat with ' + partnerName;
-        chatSubtitle.textContent = 'Private conversation';
-        document.querySelectorAll('.userItem').forEach(x=>x.classList.remove('active'));
-        const active = [...document.querySelectorAll('.userItem')].find(li=>li.dataset.uid===partnerUid);
-        if (active) active.classList.add('active');
-        await ensureChatDoc(currentChatId, [auth.currentUser.uid, partnerUid]);
-        subscribeMessages(currentChatId);
-      }
-
-      async function ensureChatDoc(chatId, participants) {
-        const ref = db.collection('chats').doc(chatId);
-        try {
-          if (participants) {
-            await ref.set({ participants: participants, createdAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
-          } else {
-            await ref.set({ createdAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
-          }
-        } catch(e){ console.error('ensure chat doc', e) }
-      }
-
-      globalBtn.addEventListener('click', openGlobal);
-
-      // ---------- subscribe messages ----------
-      function subscribeMessages(chatId) {
-        if (messagesUnsub) messagesUnsub();
-        messagesEl.innerHTML = '<div class="small" style="color:#666;padding:8px">Loading messages...</div>';
-        messagesUnsub = db.collection('chats').doc(chatId).collection('messages').orderBy('time').onSnapshot(snap => {
-          messagesEl.innerHTML = '';
-          snap.forEach(doc => {
-            renderMessage(doc.id, doc.data());
-          });
-          messagesEl.scrollTop = messagesEl.scrollHeight;
-        }, err => console.error('messages sub err', err));
-      }
-
-      // ---------- render message ----------
-      function renderMessage(id, msg) {
-        const node = document.createElement('div');
-        node.className = 'message ' + (msg.uid === auth.currentUser.uid ? 'sent' : 'received');
-        // store timestamp ms
-        const ms = msg.time && msg.time.seconds ? msg.time.seconds * 1000 : Date.now();
-        node.dataset.timeMs = ms;
-
-        const meta = document.createElement('div');
-        meta.className = 'meta';
-        const t = msg.time && msg.time.seconds ? new Date(msg.time.seconds * 1000).toLocaleTimeString() : '';
-        meta.textContent = `${msg.name || 'Anon'}${t ? ' • ' + t : ''}`;
-
-        const content = document.createElement('div');
-        // audio message if audioData present (data URL)
-        if (msg.type === 'audio' && msg.audioData) {
-          const audio = document.createElement('audio');
-          audio.controls = true;
-          // msg.audioData is a data URL (data:audio/webm;base64,....)
-          audio.src = msg.audioData;
-          content.appendChild(audio);
-        } else {
-          content.textContent = msg.text || '';
-        }
-
-        node.appendChild(meta);
-        node.appendChild(content);
-
-        // controls (edit for text, delete for owner)
-        if (msg.uid === auth.currentUser.uid) {
-          const ctrl = document.createElement('div');
-          ctrl.className = 'controls';
-          if (msg.type !== 'audio') {
-            const edit = document.createElement('button');
-            edit.textContent = '✏️';
-            edit.title = 'Edit';
-            edit.addEventListener('click', async () => {
-              const newText = prompt('Edit message', msg.text || '');
-              if (newText !== null && newText.trim() !== '') {
-                try {
-                  await db.collection('chats').doc(currentChatId).collection('messages').doc(id).update({ text: newText.trim() });
-                } catch (e) { console.error(e) }
-              }
-            });
-            ctrl.appendChild(edit);
-          }
-          const del = document.createElement('button');
-          del.textContent = '🗑️';
-          del.title = 'Delete';
-          del.addEventListener('click', async () => {
-            if (confirm('Delete this message?')) {
-              try {
-                await db.collection('chats').doc(currentChatId).collection('messages').doc(id).delete();
-              } catch (e) { console.error(e) }
-            }
-          });
-          ctrl.appendChild(del);
-          node.appendChild(ctrl);
-        }
-
-        messagesEl.appendChild(node);
-      }
-
-      // ---------- send text ----------
-      sendBtn.addEventListener('click', async () => {
-        const text = textInput.value.trim();
-        if (!text) return;
-        const user = auth.currentUser;
-        if (!user) return alert('Please login');
-        try {
-          const userDoc = await db.collection('users').doc(user.uid).get();
-          const name = userDoc.exists ? userDoc.data().username : user.email;
-          await db.collection('chats').doc(currentChatId).collection('messages').add({
-            type: 'text', text, name, uid: user.uid, time: firebase.firestore.FieldValue.serverTimestamp()
-          });
-          textInput.value = '';
-          setTyping(false);
-        } catch (e) { console.error(e) }
-      });
-
-      // allow Enter to send
-      textInput.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendBtn.click(); }
-        else { setTyping(true); }
-      });
-
-      // ---------- simple typing indicator using local timer (no DB) ----------
-      let typingTimer = null;
-      function setTyping(on) {
-        if (on) {
-          typingEl.textContent = 'You are typing...';
-          if (typingTimer) clearTimeout(typingTimer);
-          typingTimer = setTimeout(()=> typingEl.textContent = '', 1800);
-        } else {
-          typingEl.textContent = '';
-          if (typingTimer) clearTimeout(typingTimer);
-        }
-      }
-
-      // ---------- voice recording (local, send as data URL) ----------
-      let recorder = null;
-      let recordedChunks = [];
-
-      recordBtn.addEventListener('click', async () => {
-        if (!auth.currentUser) return alert('Please log in to record');
-        try {
-          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-          recorder = new MediaRecorder(stream);
-          recordedChunks = [];
-          recorder.ondataavailable = (e) => { if (e.data && e.data.size > 0) recordedChunks.push(e.data); };
-          recorder.onstart = () => {
-            recordStatus.textContent = 'Recording...';
-            recordBtn.style.display = 'none';
-            stopBtn.style.display = 'inline-block';
-            setTyping(false);
-          };
-          recorder.onstop = async () => {
-            recordStatus.textContent = '';
-            recordBtn.style.display = 'inline-block';
-            stopBtn.style.display = 'none';
-            try {
-              const blob = new Blob(recordedChunks, { type: 'audio/webm' });
-              // convert to data URL
-              const reader = new FileReader();
-              reader.onloadend = async () => {
-                const dataUrl = reader.result; // "data:audio/webm;base64,...."
-                // store message with audioData (data URL)
-                const user = auth.currentUser;
-                const userDoc = await db.collection('users').doc(user.uid).get();
-                const name = userDoc.exists ? userDoc.data().username : user.email;
-                await db.collection('chats').doc(currentChatId).collection('messages').add({
-                  type: 'audio',
-                  audioData: dataUrl,
-                  name,
-                  uid: user.uid,
-                  time: firebase.firestore.FieldValue.serverTimestamp()
-                });
-              };
-              reader.readAsDataURL(blob);
-            } catch (err) { console.error('record stop err', err); alert('Error sending voice message') }
-          };
-          recorder.start();
-        } catch (err) {
-          alert('Microphone access denied or unavailable: ' + err.message);
-          console.error(err);
-        }
-      });
-
-      stopBtn.addEventListener('click', () => {
-        if (recorder && recorder.state !== 'inactive') recorder.stop();
-      });
-
-      // ---------- attach presence indicator attempt (lightweight) ----------
-      // We will show a green dot on the users panel if the user has a 'lastActive' within the last 60s.
-      // On sign-in we update our own lastActive periodically.
-      let lastActiveInterval = null;
-      async function startPresenceHeartbeat() {
-        const me = auth.currentUser;
-        if (!me) return;
-        const uref = db.collection('users').doc(me.uid);
-        // update once immediately
-        await uref.set({ lastActive: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
-        if (lastActiveInterval) clearInterval(lastActiveInterval);
-        lastActiveInterval = setInterval(() => {
-          uref.set({ lastActive: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true }).catch(()=>{});
-        }, 30000); // every 30s
-      }
-
-      // periodically update presence dots by reading user doc lastActive
-      let presencePoll = null;
-      function startPresencePoll() {
-        if (presencePoll) clearInterval(presencePoll);
-        presencePoll = setInterval(async () => {
-          try {
-            const usersSnap = await db.collection('users').get();
-            usersSnap.forEach(doc => {
-              const data = doc.data();
-              const el = document.getElementById('dot_' + doc.id);
-              if (!el) return;
-              if (data && data.lastActive && data.lastActive.seconds) {
-                const last = data.lastActive.seconds * 1000;
-                if (Date.now() - last < 60000) { el.classList.remove('off'); el.classList.add('on'); el.title = 'Active'; }
-                else { el.classList.remove('on'); el.classList.add('off'); el.title = 'Last active: ' + new Date(last).toLocaleString(); }
-              } else {
-                el.classList.remove('on'); el.classList.add('off'); el.title = 'Unknown';
-              }
-            });
-          } catch(e){ console.error('presence poll err', e) }
-        }, 15000); // every 15s
-      }
-
-      // ---------- auth state changes ----------
-      auth.onAuthStateChanged(async (user) => {
-        if (user) {
-          // hide auth card, show workspace
-          authCard.style.display = 'none';
-          workspace.style.display = 'flex';
-          signedInAs.textContent = 'Signed in as ' + (user.email || '');
-          // load users & open global
-          loadUsersList();
-          await ensureChatDoc('global');
-          subscribeMessages('global');
-          // presence
-          startPresenceHeartbeat();
-          startPresencePoll();
-        } else {
-          // show auth
-          authCard.style.display = 'block';
-          workspace.style.display = 'none';
-          signedInAs.textContent = '';
-          // cleanup
-          if (messagesUnsub) messagesUnsub();
-          if (usersUnsub) usersUnsub();
-          if (lastActiveInterval) clearInterval(lastActiveInterval);
-          if (presencePoll) clearInterval(presencePoll);
-        }
-      });
-
-      // ---------- basic safeguards / helpers ----------
-      // click outside to unfocus
-      document.addEventListener('click', (e) => { /* placeholder */ });
-
-      // expose for debugging
-      window.heychat = {
-        auth, db, openGlobal: openGlobal, openPrivateChat
+        apiKey: "AIzaSyAlVJcbUTlxZDd5oMUwvemk-FMiFneid80",
+        authDomain: "heychat-1aea9.firebaseapp.com",
+        projectId: "heychat-1aea9",
+        storageBucket: "heychat-1aea9.appspot.com",
+        messagingSenderId: "324327775275",
+        appId: "1:324327775275:web:28ecebf9147b87d1655e6e"
       };
 
-      // open global on first load (if logged in)
-      async function openGlobal() { await openGlobalChat(); }
-      async function openGlobalChat() { await openGlobal(); }
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+      const db = getFirestore(app);
 
-      // small helper: ensure global called correctly
-      async function openGlobal() {
-        currentChatId = 'global';
-        currentPartner = null;
-        chatTitle.textContent = 'Global Chat';
-        chatSubtitle.textContent = 'Public room for everyone';
-        document.querySelectorAll('.userItem').forEach(x=>x.classList.remove('active'));
-        await ensureChatDoc('global');
-        subscribeMessages('global');
+      const emailEl = document.getElementById("email");
+      const passEl = document.getElementById("password");
+      const chatSection = document.getElementById("chatSection");
+      const authSection = document.getElementById("authSection");
+      const messagesEl = document.getElementById("messages");
+      const textEl = document.getElementById("text");
+      const chatForm = document.getElementById("chat-form");
+      const userInfo = document.getElementById("userInfo");
+
+      async function setUsername(user) {
+        const username = prompt("Enter a username for chat:");
+        if (username && username.trim() !== "") {
+          await setDoc(doc(db, "users", user.uid), {
+            username: username.trim(),
+            email: user.email
+          });
+        }
       }
 
-      // done
-    });
-  </script>
-</body>
-  </html>
+      async function signup() {
+        const email = emailEl.value.trim();
+        const password = passEl.value.trim();
+        if (!email || !password) return alert("Enter email and password.");
+        try {
+          const cred = await createUserWithEmailAndPassword(auth, email, password);
+          await setUsername(cred.user);
+          alert("✅ Signup successful!");
+        } catch (err) {
+          alert("❌ " + err.message);
+        }
+      }
+
+      async function login() {
+        const email = emailEl.value.trim();
+        const password = passEl.value.trim();
+        try {
+          await signInWithEmailAndPassword(auth, email, password);
+        } catch (err) {
+          alert("❌ " + err.message);
+        }
+      }
+
+      function logout() {
+        signOut(auth);
+      }
+
+      async function sendMessage(e) {
+        e.preventDefault();
+        const text = textEl.value.trim();
+        const user = auth.currentUser;
+        if (!user || !text) return;
+
+        try {
+          const userDoc = await getDoc(doc(db, "users", user.uid));
+          const username = userDoc.exists() ? userDoc.data().username : user.email;
+          await addDoc(collection(db, "messages"), {
+            text,
+            name: username,
+            uid: user.uid,
+            time: serverTimestamp()
+          });
+          textEl.value = "";
+        } catch (err) {
+          console.error(err);
+        }
+      }
+
+      function loadMessages() {
+        const q = query(collection(db, "messages"), orderBy("time"));
+        onSnapshot(q, (snapshot) => {
+          messagesEl.innerHTML = "";
+          snapshot.forEach((docSnap) => {
+            const msg = docSnap.data();
+            const div = document.createElement("div");
+            div.classList.add("message");
+            if (msg.uid === auth.currentUser?.uid) {
+              div.classList.add("sent");
+              div.innerHTML = `<b>You</b>${msg.text}
+                <div>
+                  <button onclick="editMessage('${docSnap.id}', '${msg.text.replace(/'/g, "\\'")}')">✏️</button>
+                  <button onclick="deleteMessage('${docSnap.id}')">🗑️</button>
+                </div>`;
+            } else {
+              div.classList.add("received");
+              div.innerHTML = `<b>${msg.name || "Anon"}</b>${msg.text}`;
+            }
+            messagesEl.appendChild(div);
+          });
+          messagesEl.scrollTop = messagesEl.scrollHeight;
+        });
+      }
+
+      async function editMessage(id, oldText) {
+        const newText = prompt("Edit your message:", oldText);
+        if (newText && newText.trim() !== "") {
+          await updateDoc(doc(db, "messages", id), { text: newText.trim() });
+        }
+      }
+
+      async function deleteMessage(id) {
+        if (confirm("Delete this message?")) {
+          await deleteDoc(doc(db, "messages", id));
+        }
+      }
+
+      document.getElementById("signupBtn").addEventListener("click", signup);
+      document.getElementById("loginBtn").addEventListener("click", login);
+      document.getElementById("logoutBtn").addEventListener("click", logout);
+      chatForm.addEventListener("submit", sendMessage);
+
+      onAuthStateChanged(auth, (user) => {
+        if (user) {
+          authSection.style.display = "none";
+          chatSection.style.display = "flex";
+          userInfo.textContent = `Logged in as ${user.email}`;
+          loadMessages();
+        } else {
+          authSection.style.display = "block";
+          chatSection.style.display = "none";
+        }
+      });
+
+      window.editMessage = editMessage;
+      window.deleteMessage = deleteMessage;
+    </script>
+
+    <!-- 🌙 DARK MODE -->
+    <script>
+      const themeToggle = document.getElementById("themeToggle");
+      const body = document.body;
+      if (localStorage.getItem("theme") === "dark") {
+        body.classList.add("dark");
+        themeToggle.textContent = "☀️";
+      }
+      themeToggle.addEventListener("click", () => {
+        body.classList.toggle("dark");
+        const isDark = body.classList.contains("dark");
+        localStorage.setItem("theme", isDark ? "dark" : "light");
+        themeToggle.textContent = isDark ? "☀️" : "🌙";
+      });
+    </script>
+  </body>
+</html>
