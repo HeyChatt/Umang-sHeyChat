@@ -1,751 +1,543 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>HeyChat 💬</title>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>HeyChat — Full</title>
 
-    <style>
-      :root {
-        --primary: #0078ff;
-        --primary-dark: #005fcc;
-        --bg: #f5f7fa;
-        --surface: #ffffff;
-        --text: #222;
-        --sent: #d2eaff;
-        --received: #ececec;
-        --radius: 12px;
-        --transition: all 0.3s ease;
-      }
+  <style>
+    :root{
+      --primary:#0078ff;--primary-dark:#005fcc;--bg:#f5f7fa;--surface:#fff;--text:#222;
+      --sent:#d2eaff;--received:#ececec;--radius:12px;--transition:all .25s ease;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:Poppins,Arial,sans-serif;background:var(--bg);color:var(--text);display:flex;flex-direction:column;align-items:center;min-height:100vh;padding:20px;transition:var(--transition)}
+    #themeToggle{position:fixed;top:15px;right:15px;background:var(--primary);color:#fff;border:none;border-radius:50%;width:40px;height:40px;font-size:18px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.15)}
+    #authSection{background:var(--surface);padding:22px;border-radius:var(--radius);box-shadow:0 2px 14px rgba(0,0,0,.06);max-width:360px;width:100%;text-align:center}
+    #authSection input{width:100%;padding:10px;margin:8px 0;border:1px solid #ddd;border-radius:10px}
+    #authSection button{width:48%;padding:10px;margin:6px 1%;border-radius:10px;border:none;background:var(--primary);color:#fff;cursor:pointer}
+    #chatSection{display:none;width:100%;max-width:980px;background:var(--surface);border-radius:12px;padding:14px;box-shadow:0 2px 14px rgba(0,0,0,.06)}
+    #workspace{display:flex;gap:12px}
+    #usersPanel{width:240px;border:1px solid #eee;padding:10px;border-radius:10px;background:#fafafa;max-height:520px;overflow:auto}
+    #usersPanel h3{margin-bottom:8px}
+    #usersUl{list-style:none;padding:0;margin:0}
+    .userItem{display:flex;justify-content:space-between;align-items:center;padding:8px;border-radius:8px;cursor:pointer}
+    .userItem:hover{background:#f1f8ff}
+    .userItem.active{background:#dfefff}
+    .presence-dot{width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:8px}
+    .presence-online{background:#22c55e}.presence-offline{background:#cbd5e1}
+    #messagesPanel{flex:1;display:flex;flex-direction:column}
+    #messages{border:1px solid #ccc;height:420px;overflow:auto;padding:12px;border-radius:12px;background:var(--surface);display:flex;flex-direction:column;gap:8px}
+    .message{padding:10px 14px;border-radius:12px;max-width:75%;word-wrap:break-word;display:flex;flex-direction:column;gap:6px}
+    .sent{background:var(--sent);align-self:flex-end;text-align:right}
+    .received{background:var(--received);align-self:flex-start;text-align:left}
+    .meta{font-size:12px;color:#666}
+    .controls{display:flex;gap:6px;justify-content:flex-end}
+    .read-receipt{font-size:11px;color:#2a7cda;margin-top:4px;align-self:flex-end}
+    #typingIndicator{font-size:13px;color:#666;min-height:18px;margin-top:6px}
+    #chat-form{display:flex;gap:8px;margin-top:10px}
+    #chat-form input{flex:1;padding:10px;border-radius:10px;border:1px solid #ddd}
+    #chat-form button{padding:10px 16px;border-radius:10px;border:none;background:var(--primary);color:#fff;cursor:pointer}
+    .logout-btn{background:#f44336;color:#fff;border:none;padding:8px 12px;border-radius:10px;cursor:pointer}
+    @media(max-width:900px){#workspace{flex-direction:column}#usersPanel{width:100%;max-height:160px}#messages{height:340px}}
+    /* dark */
+    body.dark{background:#0d1117;color:#e6edf3}
+    body.dark #messages{background:#0f1418;border-color:#2b3036}
+    body.dark .sent{background:#1f6feb;color:#fff}
+    body.dark .received{background:#2d333b;color:#e6edf3}
+    body.dark input, body.dark button{background:#21262d;color:#e6edf3;border-color:#30363d}
+  </style>
+</head>
+<body>
+  <button id="themeToggle">🌙</button>
 
-      * { box-sizing: border-box; margin: 0; padding: 0; }
-      body { font-family: "Poppins", Arial, sans-serif; background: var(--bg); color: var(--text); display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding: 20px; transition: var(--transition); }
-      h2 { margin-bottom: 15px; }
-
-      /* dark mode */
-      body.dark { background: #0d1117; color: #e6edf3; }
-      body.dark #messages { background: #161b22; border-color: #30363d; }
-      body.dark input, body.dark button { background: #21262d; color: #e6edf3; border-color: #30363d; }
-      body.dark .sent { background: #1f6feb; color: #ffffff; }
-      body.dark .received { background: #2d333b; color: #e6edf3; }
-
-      #themeToggle { position: fixed; top: 15px; right: 15px; background: var(--primary); color: #fff; border: none; border-radius: 50%; width: 40px; height: 40px; font-size: 18px; cursor: pointer; transition: var(--transition); box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
-      #themeToggle:hover { background: var(--primary-dark); transform: scale(1.05); }
-
-      /* auth */
-      #authSection { background: var(--surface); padding: 25px; border-radius: var(--radius); box-shadow: 0 2px 8px rgba(0,0,0,0.1); text-align: center; max-width: 350px; width: 100%; }
-      #authSection input { width:100%; padding:10px; margin:8px 0; border:1px solid #ccc; border-radius:var(--radius); font-size:1rem; }
-      #authSection button { width:48%; padding:10px; margin:5px 1%; background:var(--primary); border:none; color:#fff; border-radius:var(--radius); font-weight:600; cursor:pointer; transition:var(--transition); }
-      #authSection button:hover { background:var(--primary-dark); }
-
-      /* chat */
-      #chatSection { background: var(--surface); border-radius: var(--radius); width: 100%; max-width: 900px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); padding: 15px; display: none; flex-direction: column; gap: 10px; }
-      #workspace { display:flex; gap:12px; }
-      #usersPanel { width:240px; border:1px solid #eee; padding:8px; border-radius:10px; background:#fafafa; max-height:520px; overflow-y:auto; }
-      #usersPanel h3 { margin-bottom:8px; font-size:16px; }
-      #usersUl { list-style:none; padding:0; margin:0; }
-      .userItem { padding:8px; border-radius:8px; cursor:pointer; display:flex; justify-content:space-between; align-items:center; gap:8px; }
-      .userItem:hover { background:#f0f8ff; }
-      .userItem.active { background:#dfefff; }
-      .presence-dot { width:10px; height:10px; border-radius:50%; display:inline-block; margin-right:8px; }
-      .presence-online { background:#22c55e; } /* green */
-      .presence-offline { background:#cbd5e1; } /* gray */
-
-      #messagesPanel { flex:1; display:flex; flex-direction:column; }
-      #userInfo { font-size:14px; color:gray; text-align:left; }
-      #messages { border:1px solid #ccc; height:400px; overflow-y:auto; padding:10px; background:var(--surface); border-radius:var(--radius); scroll-behavior:smooth; display:flex; flex-direction:column; gap:8px; }
-      .message { padding:10px 14px; border-radius:var(--radius); margin:6px 0; max-width:75%; word-wrap:break-word; animation:fadeIn 0.3s ease-in; display:inline-flex; flex-direction:column; gap:6px; }
-      .sent { background:var(--sent); align-self:flex-end; text-align:right; position:relative; }
-      .received { background:var(--received); align-self:flex-start; text-align:left; }
-      .message .meta { font-size:12px; color:#666; }
-      .message .controls { display:flex; gap:6px; justify-content:flex-end; }
-
-      .read-receipt { font-size:11px; color:#2a7cda; margin-top:4px; align-self:flex-end; }
-
-      #typingIndicator { font-size:13px; color:#666; margin:6px 6px 0 6px; min-height:18px; }
-
-      .message button { background:#e8e8e8; border:none; border-radius:8px; padding:3px 6px; margin:3px; font-size:12px; cursor:pointer; transition:var(--transition); }
-      .message button:hover { background:#ccc; }
-
-      #chat-form { display:flex; gap:10px; margin-top:8px; }
-      #chat-form input { flex:1; padding:10px; border:1px solid #ccc; border-radius:var(--radius); font-size:1rem; }
-      #chat-form button { background:var(--primary); border:none; color:#fff; border-radius:var(--radius); padding:0 16px; font-size:1rem; cursor:pointer; transition:var(--transition); }
-      #chat-form button:hover { background:var(--primary-dark); }
-
-      .logout-btn { background:red; color:#fff; border:none; padding:8px 16px; border-radius:var(--radius); font-weight:600; cursor:pointer; transition:var(--transition); }
-      .logout-btn:hover { background:#cc0000; }
-
-      @keyframes fadeIn { from { opacity:0; transform:translateY(10px);} to { opacity:1; transform:translateY(0);} }
-      @media (max-width:900px) { #workspace { flex-direction:column; } #usersPanel { width:100%; max-height:160px; } #messages { height:340px; } }
-    </style>
-  </head>
-
-  <body>
-    <button id="themeToggle">🌙</button>
-
-    <!-- AUTH -->
-    <div id="authSection">
-      <h2>Welcome to HeyChat 👋</h2>
-      <input id="email" type="email" placeholder="Email" />
-      <input id="password" type="password" placeholder="Password" />
-      <div>
-        <button id="loginBtn">Login</button>
-        <button id="signupBtn">Sign Up</button>
-      </div>
+  <!-- AUTH -->
+  <div id="authSection">
+    <h2>Welcome to HeyChat 👋</h2>
+    <input id="email" type="email" placeholder="Email" />
+    <input id="password" type="password" placeholder="Password" />
+    <div style="margin-top:8px">
+      <button id="loginBtn">Login</button>
+      <button id="signupBtn">Sign Up</button>
     </div>
+  </div>
 
-    <!-- CHAT -->
-    <div id="chatSection">
-      <h2 style="text-align:center;">HeyChat 💬</h2>
-      <p id="userInfo"></p>
+  <!-- CHAT -->
+  <div id="chatSection">
+    <h2 style="text-align:center;margin-bottom:8px">HeyChat 💬</h2>
+    <div id="workspace">
+      <aside id="usersPanel">
+        <h3>Users</h3>
+        <div style="font-size:13px;color:#666;margin-bottom:8px">Click a user for private chat — or Global</div>
+        <ul id="usersUl"></ul>
+        <hr style="margin:8px 0" />
+        <button id="globalBtn" style="width:100%;padding:8px;border-radius:8px;border:none;background:#f1f5f9;cursor:pointer">🔊 Global Chat</button>
+      </aside>
 
-      <div id="workspace">
-        <aside id="usersPanel">
-          <h3>Users</h3>
-          <div id="usersListInfo" style="font-size:13px;color:#666;margin-bottom:6px;">Click a user for private chat — or "Global" for all</div>
-          <ul id="usersUl"></ul>
-          <hr style="margin:8px 0" />
-          <button id="globalBtn" style="width:100%;padding:8px;border-radius:8px;border:none;background:#f1f5f9;cursor:pointer">🔊 Global Chat</button>
-        </aside>
+      <section id="messagesPanel">
+        <div id="messages"></div>
+        <div id="typingIndicator"></div>
 
-        <section id="messagesPanel">
-          <div id="messages"></div>
-          <div id="typingIndicator"></div>
+        <form id="chat-form">
+          <input id="text" type="text" placeholder="Type a message..." autocomplete="off" />
+          <button type="submit">Send</button>
+        </form>
 
-          <form id="chat-form">
-            <input type="text" id="text" placeholder="Type a message..." autocomplete="off" />
-            <button type="submit">Send</button>
-          </form>
-
-          <div style="display:flex; gap:10px; margin-top:8px; align-items:center;">
-            <button type="button" id="recordBtn">🎙️ Record</button>
-            <button type="button" id="stopBtn" style="display:none;">⏹ Stop</button>
-            <div id="recordStatus" style="font-size:13px;color:#666"></div>
-          </div>
-        </section>
-      </div>
-
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-top:12px;">
-        <div id="signedAs" style="font-size:14px;color:#666"></div>
-        <div>
-          <button class="logout-btn" id="logoutBtn">Logout</button>
+        <div style="display:flex;gap:8px;align-items:center;margin-top:8px">
+          <button id="recordBtn">🎙️ Record</button>
+          <button id="stopBtn" style="display:none">⏹ Stop</button>
+          <div id="recordStatus" style="font-size:13px;color:#666"></div>
         </div>
-      </div>
+      </section>
     </div>
 
-    <!-- Firebase modular SDKs -->
-    <script type="module" defer>
-      import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px">
+      <div id="signedAs" style="font-size:14px;color:#666"></div>
+      <div>
+        <button class="logout-btn" id="logoutBtn">Logout</button>
+      </div>
+    </div>
+  </div>
 
-      // auth
-      import {
-        getAuth,
-        createUserWithEmailAndPassword,
-        signInWithEmailAndPassword,
-        onAuthStateChanged,
-        signOut
-      } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+  <!-- Firebase compat SDKs (non-module) -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
-      // firestore
-      import {
-        getFirestore,
-        collection,
-        addDoc,
-        query,
-        orderBy,
-        onSnapshot,
-        doc,
-        getDoc,
-        setDoc,
-        updateDoc,
-        deleteDoc,
-        serverTimestamp,
-        getDocs
-      } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+  <!-- Main app script (deferred) -->
+  <script defer>
+  document.addEventListener('DOMContentLoaded', () => {
+    // ---------- Firebase config (kept as provided) ----------
+    const firebaseConfig = {
+      apiKey: "AIzaSyAlVJcbUTlxZDd5oMUwvemk-FMiFneid80",
+      authDomain: "heychat-1aea9.firebaseapp.com",
+      projectId: "heychat-1aea9",
+      storageBucket: "heychat-1aea9.appspot.com",
+      messagingSenderId: "324327775275",
+      appId: "1:324327775275:web:28ecebf9147b87d1655e6e"
+    };
 
-      // storage
-      import {
-        getStorage,
-        ref as storageRef,
-        uploadBytes,
-        getDownloadURL
-      } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-storage.js";
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+    const storage = firebase.storage();
+    const rdb = firebase.database();
 
-      // realtime database (for presence + typing)
-      import {
-        getDatabase,
-        ref as dbRef,
-        onValue,
-        set as rdbSet,
-        onDisconnect,
-        remove as rdbRemove
-      } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+    // UI refs
+    const emailEl = document.getElementById('email');
+    const passEl = document.getElementById('password');
+    const authSection = document.getElementById('authSection');
+    const chatSection = document.getElementById('chatSection');
+    const loginBtn = document.getElementById('loginBtn');
+    const signupBtn = document.getElementById('signupBtn');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const usersUl = document.getElementById('usersUl');
+    const globalBtn = document.getElementById('globalBtn');
+    const messagesEl = document.getElementById('messages');
+    const chatForm = document.getElementById('chat-form');
+    const textEl = document.getElementById('text');
+    const signedAs = document.getElementById('signedAs');
+    const recordBtn = document.getElementById('recordBtn');
+    const stopBtn = document.getElementById('stopBtn');
+    const recordStatus = document.getElementById('recordStatus');
+    const typingIndicator = document.getElementById('typingIndicator');
+    const themeToggle = document.getElementById('themeToggle');
 
-      // ---------- Firebase config (keep your config or replace) ----------
-      const firebaseConfig = {
-        apiKey: "AIzaSyAlVJcbUTlxZDd5oMUwvemk-FMiFneid80",
-        authDomain: "heychat-1aea9.firebaseapp.com",
-        projectId: "heychat-1aea9",
-        storageBucket: "heychat-1aea9.appspot.com",
-        messagingSenderId: "324327775275",
-        appId: "1:324327775275:web:28ecebf9147b87d1655e6e"
-      };
+    // state
+    let currentChatId = 'global';
+    let currentChatPartner = null;
+    let messagesUnsub = null;
+    let usersUnsub = null;
+    let presenceListeners = {};
+    let typingListenerRef = null;
+    let mediaRecorder = null;
+    let audioChunks = [];
+    let typingTimeout = null;
 
-      const app = initializeApp(firebaseConfig);
-      const auth = getAuth(app);
-      const db = getFirestore(app);
-      const storage = getStorage(app);
-      const rdb = getDatabase(app);
+    // ---------- auth actions ----------
+    async function setUsername(user) {
+      const username = prompt('Choose a display name:');
+      if (username && username.trim()) {
+        await db.collection('users').doc(user.uid).set({
+          username: username.trim(),
+          email: user.email,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+      } else {
+        await db.collection('users').doc(user.uid).set({
+          username: user.email.split('@')[0],
+          email: user.email,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+      }
+    }
 
-      // UI elements
-      const emailEl = document.getElementById("email");
-      const passEl = document.getElementById("password");
-      const chatSection = document.getElementById("chatSection");
-      const authSection = document.getElementById("authSection");
-      const messagesEl = document.getElementById("messages");
-      const textEl = document.getElementById("text");
-      const chatForm = document.getElementById("chat-form");
-      const userInfo = document.getElementById("userInfo");
-      const usersUl = document.getElementById("usersUl");
-      const globalBtn = document.getElementById("globalBtn");
-      const signedAs = document.getElementById("signedAs");
-      const recordBtn = document.getElementById("recordBtn");
-      const stopBtn = document.getElementById("stopBtn");
-      const recordStatus = document.getElementById("recordStatus");
-      const typingIndicator = document.getElementById("typingIndicator");
-      const themeToggle = document.getElementById("themeToggle");
+    signupBtn.addEventListener('click', async () => {
+      const email = emailEl.value.trim();
+      const pw = passEl.value.trim();
+      if (!email || !pw) return alert('Enter email & password');
+      try {
+        const cred = await auth.createUserWithEmailAndPassword(email, pw);
+        await setUsername(cred.user);
+        alert('Signup OK — you are signed in');
+      } catch (err) {
+        alert('Signup error: ' + err.message);
+        console.error(err);
+      }
+    });
 
-      // state
-      let currentChatId = "global";
-      let currentChatPartner = null; // { uid, name }
-      let messagesUnsub = null;
-      let usersUnsub = null;
-      let presenceListeners = {}; // track per-user presence listeners
-      let typingListenerUnsub = null;
-      let partnerLastReadUnsub = null;
-      let localTypingTimeout = null;
+    loginBtn.addEventListener('click', async () => {
+      try {
+        await auth.signInWithEmailAndPassword(emailEl.value.trim(), passEl.value.trim());
+      } catch (err) {
+        alert('Login error: ' + err.message);
+        console.error(err);
+      }
+    });
 
-      // ---------- Auth / signup ----------
-      async function setUsername(user) {
-        const username = prompt("Enter a username for chat:");
-        if (username && username.trim() !== "") {
-          await setDoc(doc(db, "users", user.uid), {
-            username: username.trim(),
-            email: user.email,
-            createdAt: serverTimestamp()
-          });
+    logoutBtn.addEventListener('click', async () => {
+      // set offline presence immediately
+      const me = auth.currentUser;
+      if (me) {
+        const sref = rdb.ref('status/' + me.uid);
+        sref.set({ online: false, lastSeen: Date.now() }).catch(()=>{});
+      }
+      await auth.signOut();
+    });
+
+    // ---------- presence (rdb) ----------
+    function startPresence() {
+      const me = auth.currentUser;
+      if (!me) return;
+      const statusRef = rdb.ref('status/' + me.uid);
+      statusRef.set({ online: true, lastSeen: Date.now() }).catch(()=>{});
+      // onDisconnect to set offline
+      try {
+        statusRef.onDisconnect().set({ online: false, lastSeen: Date.now() });
+      } catch (e) {
+        // ignore if onDisconnect not available
+      }
+    }
+
+    function attachPresenceListener(uid) {
+      if (presenceListeners[uid]) return;
+      const ref = rdb.ref('status/' + uid);
+      presenceListeners[uid] = ref.on('value', snap => {
+        const el = document.getElementById('presence_' + uid);
+        if (!el) return;
+        const val = snap.val();
+        if (val && val.online) {
+          el.classList.remove('presence-offline'); el.classList.add('presence-online'); el.title = 'Online';
         } else {
-          // fallback to email-based username
-          await setDoc(doc(db, "users", user.uid), {
-            username: user.email.split("@")[0],
-            email: user.email,
-            createdAt: serverTimestamp()
-          }, { merge: true });
+          el.classList.remove('presence-online'); el.classList.add('presence-offline');
+          if (val && val.lastSeen) el.title = 'Last seen: ' + (new Date(val.lastSeen)).toLocaleString();
+          else el.title = 'Offline';
         }
-      }
-
-      async function signup() {
-        const email = emailEl.value.trim();
-        const password = passEl.value.trim();
-        if (!email || !password) return alert("Enter email and password.");
-        try {
-          const cred = await createUserWithEmailAndPassword(auth, email, password);
-          await setUsername(cred.user);
-          alert("✅ Signup successful!");
-        } catch (err) {
-          alert("❌ " + err.message);
-        }
-      }
-
-      async function login() {
-        const email = emailEl.value.trim();
-        const password = passEl.value.trim();
-        try {
-          await signInWithEmailAndPassword(auth, email, password);
-        } catch (err) {
-          alert("❌ " + err.message);
-        }
-      }
-
-      function logout() {
-        // clear presence on signout
-        if (auth.currentUser) {
-          const statusRef = dbRef(rdb, `status/${auth.currentUser.uid}`);
-          rdbSet(statusRef, { online: false, lastSeen: Date.now() });
-          // no onDisconnect cleanup here because signOut is explicit
-        }
-        signOut(auth);
-      }
-
-      // ---------- wire up controls ----------
-      document.getElementById("signupBtn").addEventListener("click", signup);
-      document.getElementById("loginBtn").addEventListener("click", login);
-      document.getElementById("logoutBtn").addEventListener("click", logout);
-      globalBtn.addEventListener("click", () => openChat("global", { uid: "global", name: "Global Chat" }));
-
-      // ---------- Chat: send message ----------
-      chatForm.addEventListener("submit", sendMessage);
-      async function sendMessage(e) {
-        e.preventDefault();
-        const text = textEl.value.trim();
-        const user = auth.currentUser;
-        if (!user || !text) return;
-        try {
-          const userDoc = await getDoc(doc(db, "users", user.uid));
-          const username = userDoc.exists() ? userDoc.data().username : user.email;
-          await addDoc(collection(db, "chats", currentChatId, "messages"), {
-            type: "text",
-            text,
-            name: username,
-            uid: user.uid,
-            time: serverTimestamp()
-          });
-          textEl.value = "";
-
-          // update my lastRead since I just sent & thus "read" up to now
-          await setDoc(doc(db, "chats", currentChatId, "lastRead", user.uid), { lastRead: serverTimestamp() }, { merge: true });
-        } catch (err) {
-          console.error(err);
-        }
-      }
-
-      // ---------- load users list (live) ----------
-      async function loadUsersList() {
-        if (usersUnsub) usersUnsub();
-        const q = query(collection(db, "users"), orderBy("createdAt"));
-        usersUl.innerHTML = "<li style='padding:8px;color:#666'>Loading users...</li>";
-        usersUnsub = onSnapshot(q, (snap) => {
-          usersUl.innerHTML = "";
-          snap.forEach(u => {
-            const data = u.data();
-            const li = document.createElement("li");
-            li.className = "userItem";
-            li.dataset.uid = u.id;
-            li.innerHTML = `<div style="display:flex;align-items:center"><span class="presence-dot presence-offline" id="presence_${u.id}"></span><span>${data.username || data.email}</span></div><div style="font-size:12px;color:#666">${u.id === auth.currentUser?.uid ? 'You' : ''}</div>`;
-            // don't allow clicking self
-            if (auth.currentUser && u.id !== auth.currentUser.uid) {
-              li.addEventListener("click", () => openPrivateChat(u.id, data.username || data.email));
-            } else {
-              li.style.opacity = "0.9";
-            }
-            usersUl.appendChild(li);
-
-            // attach presence listener for this user (RDB)
-            attachPresenceListener(u.id);
-          });
-        });
-      }
-
-      // ---------- presence (Realtime DB) ----------
-      function attachPresenceListener(uid) {
-        // avoid duplicate listeners
-        if (presenceListeners[uid]) return;
-        const statusRef = dbRef(rdb, `status/${uid}`);
-        presenceListeners[uid] = onValue(statusRef, (snap) => {
-          const el = document.getElementById(`presence_${uid}`);
-          if (!el) return;
-          const v = snap.val();
-          if (v && v.online) {
-            el.classList.remove("presence-offline");
-            el.classList.add("presence-online");
-            el.title = "Online";
-          } else {
-            el.classList.remove("presence-online");
-            el.classList.add("presence-offline");
-            if (v && v.lastSeen) {
-              const d = new Date(v.lastSeen);
-              el.title = `Last seen ${d.toLocaleString()}`;
-            } else {
-              el.title = "Offline";
-            }
-          }
-        });
-      }
-
-      // set my status to online, and configure onDisconnect to set offline
-      function startPresence() {
-        const user = auth.currentUser;
-        if (!user) return;
-        const statusRef = dbRef(rdb, `status/${user.uid}`);
-        // set online now
-        rdbSet(statusRef, { online: true, lastSeen: Date.now() }).catch(e => console.error(e));
-        // onDisconnect -> set offline with lastSeen
-        try {
-          onDisconnect(statusRef).set({ online: false, lastSeen: Date.now() });
-        } catch (err) {
-          // browsers may throw if not supported; ignore
-        }
-      }
-
-      // ---------- typing indicator (Realtime DB) ----------
-      // We will set `/typing/{chatId}/{uid}` true while typing and remove it after idle
-      function setTyping(isTyping) {
-        const user = auth.currentUser;
-        if (!user || !currentChatId) return;
-        const tRef = dbRef(rdb, `typing/${currentChatId}/${user.uid}`);
-        if (isTyping) {
-          rdbSet(tRef, { typing: true, ts: Date.now() }).catch(console.error);
-          // make sure to clear after 4s of inactivity locally
-          if (localTypingTimeout) clearTimeout(localTypingTimeout);
-          localTypingTimeout = setTimeout(() => setTyping(false), 4000);
-        } else {
-          // remove node
-          rdbRemove(tRef).catch(console.error);
-        }
-      }
-
-      // subscribe to typing for current chat
-      function subscribeTyping(chatId) {
-        // remove previous listener by removing the path (we rely on onValue returning a function, but we used onValue earlier - for simplicity, we'll just reassign listener behavior)
-        if (typingListenerUnsub) {
-          typingListenerUnsub(); // previous is a cleanup function we store below
-          typingListenerUnsub = null;
-        }
-        typingIndicator.textContent = "";
-        if (!chatId) return;
-
-        const typingRef = dbRef(rdb, `typing/${chatId}`);
-        const listener = onValue(typingRef, (snap) => {
-          const data = snap.val();
-          if (!data) {
-            typingIndicator.textContent = "";
-            return;
-          }
-          // find other typers except me
-          const others = Object.keys(data).filter(uid => uid !== (auth.currentUser && auth.currentUser.uid));
-          if (others.length === 0) {
-            typingIndicator.textContent = "";
-          } else {
-            // show up to 2 names
-            (async () => {
-              const names = [];
-              for (let i = 0; i < Math.min(2, others.length); i++) {
-                const ux = others[i];
-                const userDoc = await getDoc(doc(db, "users", ux));
-                names.push(userDoc.exists() ? userDoc.data().username : ux);
-              }
-              typingIndicator.textContent = names.join(", ") + (others.length > 2 ? " and more are typing..." : " is typing...");
-            })();
-          }
-        });
-        // store cleanup
-        typingListenerUnsub = () => typingRef.off && typingRef.off() || listener; // some SDKs return unsubscribe; ensure safe
-      }
-
-      // wire typing from input
-      textEl.addEventListener("input", () => {
-        // if there's text, mark typing true, else false
-        if (textEl.value && textEl.value.trim().length > 0) setTyping(true);
-        else setTyping(false);
       });
+    }
 
-      // when chat changes, subscribe to typing for that chat
-      function onChatChanged(newChatId) {
-        subscribeTyping(newChatId);
-      }
-
-      // ---------- read receipts (Firestore small doc per user) ----------
-      // We'll store per chat: /chats/{chatId}/lastRead/{uid} => { lastRead: Timestamp }
-      async function updateMyLastRead() {
-        const user = auth.currentUser;
-        if (!user || !currentChatId) return;
-        await setDoc(doc(db, "chats", currentChatId, "lastRead", user.uid), { lastRead: serverTimestamp() }, { merge: true });
-      }
-
-      // subscribe to partner's lastRead to show read receipts on my messages
-      function subscribePartnerLastRead(partnerUid) {
-        if (partnerLastReadUnsub) partnerLastReadUnsub();
-        partnerLastReadUnsub = null;
-        if (!partnerUid || partnerUid === "global") return;
-        const ref = doc(db, "chats", currentChatId, "lastRead", partnerUid);
-        // onSnapshot works on single doc: but here we don't have an onSnapshot import name change; reuse onSnapshot
-        partnerLastReadUnsub = onSnapshot(ref, (snap) => {
-          // re-render messages to update read receipts
-          // simple approach: fetch current messages and decorate
-          // we'll just re-run subscribeToMessages which will re-render; but to avoid re-subscribing messages, we can set a small flag and re-query messages
-          // For simplicity, re-render by re-calling subscribeToMessages (it unsubscribes and re-subscribes)
-          // but avoid infinite loop: subscribeToMessages will use onSnapshot for messages; this is acceptable
-          // Instead we will just update DOM: find messages with data-time <= lastRead and add small 'Seen' marker
-          const data = snap.exists() ? snap.data() : null;
-          applyReadReceipts(data ? data.lastRead : null);
-        }, (err) => console.error(err));
-      }
-
-      // apply read receipts to DOM based on partnerLastReadTimestamp (Firestore Timestamp)
-      function applyReadReceipts(lastReadTimestamp) {
-        // find my messages in DOM and add small note if seen
-        const myMessages = [...messagesEl.querySelectorAll(".message.sent")];
-        myMessages.forEach(node => {
-          // message time is stored in meta text as "... • HH:MM:SS" ; we don't have the timestamp value in DOM; better approach: when rendering we add data-time-ms attribute
-          const tms = node.dataset.timeMs ? parseInt(node.dataset.timeMs, 10) : 0;
-          // convert lastReadTimestamp to ms
-          const lr = lastReadTimestamp && lastReadTimestamp.seconds ? (lastReadTimestamp.seconds * 1000) : (lastReadTimestamp || 0);
-          let rr = node.querySelector(".read-receipt");
-          if (!rr) {
-            rr = document.createElement("div");
-            rr.className = "read-receipt";
-            node.appendChild(rr);
-          }
-          if (lr && tms && lr >= tms) {
-            rr.textContent = "Seen";
+    // ---------- load users ----------
+    async function loadUsersList() {
+      if (usersUnsub) usersUnsub();
+      usersUl.innerHTML = '<li style="padding:8px;color:#666">Loading users...</li>';
+      usersUnsub = db.collection('users').orderBy('createdAt').onSnapshot(snap => {
+        usersUl.innerHTML = '';
+        snap.forEach(doc => {
+          const d = doc.data();
+          const li = document.createElement('li');
+          li.className = 'userItem';
+          li.dataset.uid = doc.id;
+          li.innerHTML = `<div style="display:flex;align-items:center"><span id="presence_${doc.id}" class="presence-dot presence-offline"></span><span>${d.username||d.email}</span></div><div style="font-size:12px;color:#666">${doc.id===auth.currentUser.uid?'You':''}</div>`;
+          if (doc.id === auth.currentUser.uid) {
+            li.style.opacity = 0.9;
           } else {
-            rr.textContent = "";
+            li.addEventListener('click', () => openPrivateChat(doc.id, d.username || d.email));
+          }
+          usersUl.appendChild(li);
+          attachPresenceListener(doc.id);
+        });
+      }, err => console.error('users list err', err));
+    }
+
+    // ---------- chat id helper ----------
+    function makeChatId(a,b){ return a < b ? a + '_' + b : b + '_' + a; }
+
+    // ---------- open private or global chat ----------
+    async function openPrivateChat(partnerUid, partnerName) {
+      currentChatId = makeChatId(auth.currentUser.uid, partnerUid);
+      currentChatPartner = { uid: partnerUid, name: partnerName };
+      document.querySelectorAll('.userItem').forEach(x=>x.classList.remove('active'));
+      const li = [...document.querySelectorAll('.userItem')].find(i=>i.dataset.uid===partnerUid);
+      if (li) li.classList.add('active');
+      await db.collection('chats').doc(currentChatId).set({ participants: [auth.currentUser.uid, partnerUid], createdAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
+      subscribeToMessages(currentChatId);
+      subscribeTyping(currentChatId);
+    }
+
+    async function openGlobalChat() {
+      currentChatId = 'global';
+      currentChatPartner = null;
+      document.querySelectorAll('.userItem').forEach(x=>x.classList.remove('active'));
+      await db.collection('chats').doc('global').set({ createdAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
+      subscribeToMessages('global');
+      subscribeTyping('global');
+    }
+    globalBtn.addEventListener('click', openGlobalChat);
+
+    // ---------- subscribe messages ----------
+    function subscribeToMessages(chatId) {
+      if (messagesUnsub) messagesUnsub();
+      messagesEl.innerHTML = '<div style="color:#666;padding:8px">Loading messages...</div>';
+      messagesUnsub = db.collection('chats').doc(chatId).collection('messages').orderBy('time').onSnapshot(snap => {
+        messagesEl.innerHTML = '';
+        snap.forEach(doc => {
+          renderMessage(doc.id, doc.data());
+        });
+        messagesEl.scrollTop = messagesEl.scrollHeight;
+        // viewer read -> update lastRead
+        updateMyLastRead();
+      }, err => console.error('messages sub err', err));
+    }
+
+    // ---------- render message ----------
+    function renderMessage(id, msg) {
+      const container = document.createElement('div');
+      container.className = 'message ' + (msg.uid === auth.currentUser.uid ? 'sent' : 'received');
+      const ms = msg.time && msg.time.seconds ? msg.time.seconds * 1000 : Date.now();
+      container.dataset.timeMs = ms;
+
+      const meta = document.createElement('div'); meta.className = 'meta';
+      const ts = msg.time && msg.time.seconds ? new Date(msg.time.seconds*1000).toLocaleTimeString() : '';
+      meta.textContent = `${msg.name || 'Anon'}${ts ? ' • ' + ts : ''}`;
+
+      const content = document.createElement('div');
+      if (msg.type === 'audio' && msg.audioUrl) {
+        const a = document.createElement('audio'); a.controls = true; a.src = msg.audioUrl; content.appendChild(a);
+      } else {
+        content.textContent = msg.text || '';
+      }
+
+      container.appendChild(meta); container.appendChild(content);
+
+      if (msg.uid === auth.currentUser.uid) {
+        const controls = document.createElement('div'); controls.className = 'controls';
+        if (msg.type === 'text') {
+          const e = document.createElement('button'); e.textContent = '✏️'; e.title = 'Edit';
+          e.addEventListener('click', async () => {
+            const nt = prompt('Edit message:', msg.text || '');
+            if (nt !== null && nt.trim() !== '') {
+              try { await db.collection('chats').doc(currentChatId).collection('messages').doc(id).update({ text: nt.trim() }); }
+              catch(err){console.error(err)}
+            }
+          });
+          controls.appendChild(e);
+        }
+        const d = document.createElement('button'); d.textContent='🗑️'; d.title='Delete';
+        d.addEventListener('click', async () => {
+          if (confirm('Delete this message?')) {
+            try { await db.collection('chats').doc(currentChatId).collection('messages').doc(id).delete(); }
+            catch(err){console.error(err)}
           }
         });
+        controls.appendChild(d);
+        container.appendChild(controls);
+
+        // read receipt placeholder
+        const rr = document.createElement('div'); rr.className='read-receipt'; rr.textContent=''; container.appendChild(rr);
       }
 
-      // ---------- Subscribe / render messages ----------
-      let lastRenderedMessageTimestamps = {}; // map id->ts to help update read receipts without reloading all
-      function subscribeToMessages(chatId) {
-        if (messagesUnsub) messagesUnsub();
-        messagesEl.innerHTML = "<div style='color:#666;padding:8px'>Loading messages...</div>";
+      messagesEl.appendChild(container);
+    }
 
-        const q = query(collection(db, "chats", chatId, "messages"), orderBy("time"));
-        messagesUnsub = onSnapshot(q, (snapshot) => {
-          messagesEl.innerHTML = "";
-          snapshot.forEach(docSnap => {
-            const data = docSnap.data();
-            renderMessage(docSnap.id, data);
-            lastRenderedMessageTimestamps[docSnap.id] = data.time && data.time.seconds ? data.time.seconds * 1000 : 0;
-          });
-          // scroll
-          messagesEl.scrollTop = messagesEl.scrollHeight;
+    // ---------- send text ----------
+    chatForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const text = textEl.value.trim();
+      const user = auth.currentUser;
+      if (!user || !text) return;
+      try {
+        const ud = await db.collection('users').doc(user.uid).get();
+        const name = ud.exists ? ud.data().username : user.email;
+        await db.collection('chats').doc(currentChatId).collection('messages').add({
+          type: 'text', text, name, uid: user.uid,
+          time: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        textEl.value = '';
+        // update lastRead
+        await db.collection('chats').doc(currentChatId).collection('lastRead').doc(user.uid).set({ lastRead: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
+        setTyping(false);
+      } catch (err) { console.error(err) }
+    });
 
-          // update my lastRead after rendering messages (we assume viewing means read)
-          updateMyLastRead();
-
-          // subscribe to partner's lastRead if private
-          if (currentChatPartner && currentChatPartner.uid !== "global") {
-            subscribePartnerLastRead(currentChatPartner.uid);
-          } else {
-            // global: no partner
-            if (partnerLastReadUnsub) { partnerLastReadUnsub(); partnerLastReadUnsub = null; }
-          }
-        }, (err) => console.error(err));
+    // ---------- typing indicator (rdb) ----------
+    function setTyping(isTyping) {
+      const me = auth.currentUser;
+      if (!me || !currentChatId) return;
+      const tRef = rdb.ref('typing/' + currentChatId + '/' + me.uid);
+      if (isTyping) {
+        tRef.set({ typing: true, ts: Date.now() }).catch(()=>{});
+        if (typingTimeout) clearTimeout(typingTimeout);
+        typingTimeout = setTimeout(()=> setTyping(false), 4000);
+      } else {
+        tRef.remove().catch(()=>{});
       }
+    }
+    textEl.addEventListener('input', () => {
+      if (textEl.value && textEl.value.trim().length>0) setTyping(true);
+      else setTyping(false);
+    });
 
-      // helper to create DOM node for a message (adds data-time-ms for receipts)
-      function renderMessage(id, msg) {
-        const wrapper = document.createElement("div");
-        wrapper.className = "message " + (msg.uid === auth.currentUser?.uid ? "sent" : "received");
-        // attach time-ms for read receipts
-        const ms = msg.time && msg.time.seconds ? (msg.time.seconds * 1000) : Date.now();
-        wrapper.dataset.timeMs = ms;
-
-        const meta = document.createElement("div");
-        meta.className = "meta";
-        const ts = msg.time && msg.time.seconds ? new Date(msg.time.seconds * 1000).toLocaleTimeString() : "";
-        meta.textContent = `${msg.name || "Anon"} ${ts ? " • " + ts : ""}`;
-
-        const content = document.createElement("div");
-        if (msg.type === "audio" && msg.audioUrl) {
-          const audio = document.createElement("audio");
-          audio.controls = true;
-          audio.src = msg.audioUrl;
-          content.appendChild(audio);
-        } else {
-          content.textContent = msg.text || "";
+    function subscribeTyping(chatId) {
+      // remove previous
+      if (typingListenerRef) typingListenerRef.off && typingListenerRef.off();
+      typingIndicator.textContent = '';
+      const ref = rdb.ref('typing/' + chatId);
+      typingListenerRef = ref;
+      ref.on('value', async snap => {
+        const v = snap.val();
+        if (!v) { typingIndicator.textContent = ''; return; }
+        const otherUids = Object.keys(v).filter(uid => uid !== (auth.currentUser && auth.currentUser.uid));
+        if (otherUids.length === 0) { typingIndicator.textContent = ''; return; }
+        // get up to 2 names
+        const names = [];
+        for (let i=0;i<Math.min(2, otherUids.length); i++) {
+          try {
+            const doc = await db.collection('users').doc(otherUids[i]).get();
+            names.push(doc.exists ? doc.data().username : otherUids[i]);
+          } catch(e){names.push(otherUids[i])}
         }
+        typingIndicator.textContent = names.join(', ') + (otherUids.length>2 ? ' and more are typing...' : ' is typing...');
+      });
+    }
 
-        wrapper.appendChild(meta);
-        wrapper.appendChild(content);
+    // ---------- read receipts (lastRead) ----------
+    let partnerLastReadUnsub = null;
+    function subscribePartnerLastRead(partnerUid) {
+      if (partnerLastReadUnsub) partnerLastReadUnsub();
+      partnerLastReadUnsub = null;
+      if (!partnerUid || partnerUid === 'global') return;
+      const docRef = db.collection('chats').doc(currentChatId).collection('lastRead').doc(partnerUid);
+      partnerLastReadUnsub = docRef.onSnapshot(snap => {
+        const data = snap.exists ? snap.data() : null;
+        applyReadReceipts(data && data.lastRead ? data.lastRead.toMillis ? data.lastRead.toMillis() : (data.lastRead.seconds*1000) : null);
+      }, err => console.error(err));
+    }
 
-        // controls (edit/delete) only for own messages
-        if (msg.uid === auth.currentUser?.uid) {
-          const controls = document.createElement("div");
-          controls.className = "controls";
+    function applyReadReceipts(ms) {
+      const myMsgs = [...messagesEl.querySelectorAll('.message.sent')];
+      myMsgs.forEach(node => {
+        const tms = node.dataset.timeMs ? parseInt(node.dataset.timeMs,10) : 0;
+        let rr = node.querySelector('.read-receipt');
+        if (!rr) { rr = document.createElement('div'); rr.className='read-receipt'; node.appendChild(rr); }
+        if (ms && tms && ms >= tms) rr.textContent = 'Seen';
+        else rr.textContent = '';
+      });
+    }
 
-          if (msg.type === "text") {
-            const editBtn = document.createElement("button");
-            editBtn.textContent = "✏️";
-            editBtn.title = "Edit";
-            editBtn.addEventListener("click", async () => {
-              const newText = prompt("Edit your message:", msg.text || "");
-              if (newText !== null && newText.trim() !== "") {
-                try {
-                  await updateDoc(doc(db, "chats", currentChatId, "messages", id), { text: newText.trim() });
-                } catch (err) { console.error(err); }
-              }
+    // ---------- upload & send voice ----------
+    recordBtn.addEventListener('click', async () => {
+      if (!auth.currentUser) return alert('Login to record.');
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaRecorder = new MediaRecorder(stream);
+        audioChunks = [];
+        mediaRecorder.ondataavailable = e => { if (e.data && e.data.size>0) audioChunks.push(e.data); };
+        mediaRecorder.onstart = () => {
+          recordStatus.textContent = 'Recording...';
+          recordBtn.style.display = 'none'; stopBtn.style.display = 'inline-block';
+          setTyping(false);
+        };
+        mediaRecorder.onstop = async () => {
+          recordStatus.textContent = '';
+          recordBtn.style.display = 'inline-block'; stopBtn.style.display = 'none';
+          const blob = new Blob(audioChunks, { type: 'audio/webm' });
+          const name = `voice_${Date.now()}.webm`;
+          const uid = auth.currentUser.uid;
+          const path = `voices/${currentChatId}/${uid}_${name}`;
+          const ref = storage.ref().child(path);
+          try {
+            await ref.put(blob);
+            const url = await ref.getDownloadURL();
+            const ud = await db.collection('users').doc(uid).get();
+            const nameDisplay = ud.exists ? ud.data().username : auth.currentUser.email;
+            await db.collection('chats').doc(currentChatId).collection('messages').add({
+              type:'audio', audioUrl: url, name: nameDisplay, uid, time: firebase.firestore.FieldValue.serverTimestamp()
             });
-            controls.appendChild(editBtn);
-          }
+            // update lastRead
+            await db.collection('chats').doc(currentChatId).collection('lastRead').doc(uid).set({ lastRead: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
+          } catch (err) { console.error('upload fail',err); alert('Upload failed: '+err.message) }
+        };
+        mediaRecorder.start();
+      } catch (err) { alert('Mic error: ' + err.message); console.error(err) }
+    });
+    stopBtn.addEventListener('click', () => { if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop(); });
 
-          const delBtn = document.createElement("button");
-          delBtn.textContent = "🗑️";
-          delBtn.title = "Delete";
-          delBtn.addEventListener("click", async () => {
-            if (confirm("Delete this message?")) {
-              try {
-                await deleteDoc(doc(db, "chats", currentChatId, "messages", id));
-              } catch (err) { console.error(err); }
-            }
-          });
-          controls.appendChild(delBtn);
-          wrapper.appendChild(controls);
+    // ---------- helpers on auth change ----------
+    auth.onAuthStateChanged(async user => {
+      if (user) {
+        authSection.style.display = 'none'; chatSection.style.display = 'block';
+        signedAs.textContent = 'Signed in as ' + user.email;
+        // start presence & load users & open global chat
+        startPresence();
+        loadUsersList();
+        await openGlobalChat();
+      } else {
+        authSection.style.display = 'block'; chatSection.style.display = 'none';
+        signedAs.textContent = '';
+        // cleanup listeners
+        if (messagesUnsub) messagesUnsub(); messagesUnsub = null;
+        if (usersUnsub) usersUnsub(); usersUnsub = null;
+        if (typingListenerRef) typingListenerRef.off && typingListenerRef.off();
+      }
+    });
 
-          // placeholder for read receipt
-          const rr = document.createElement("div");
-          rr.className = "read-receipt";
-          rr.textContent = "";
-          wrapper.appendChild(rr);
+    // update lastRead when viewing
+    messagesEl.addEventListener('scroll', debounce(()=> updateMyLastRead(), 600));
+    document.addEventListener('visibilitychange', ()=> { if (document.visibilityState === 'visible') updateMyLastRead(); });
+
+    async function updateMyLastRead() {
+      const me = auth.currentUser; if (!me || !currentChatId) return;
+      try {
+        await db.collection('chats').doc(currentChatId).collection('lastRead').doc(me.uid).set({ lastRead: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
+      } catch (e) { console.error(e) }
+    }
+
+    // debounce util
+    function debounce(fn, wait){ let t; return function(...a){ clearTimeout(t); t=setTimeout(()=>fn.apply(this,a), wait); } }
+
+    // ---------- theme toggle (persist) ----------
+    if (localStorage.getItem('theme') === 'dark') { document.body.classList.add('dark'); themeToggle.textContent='☀️'; }
+    themeToggle.addEventListener('click', ()=> {
+      document.body.classList.toggle('dark'); const is = document.body.classList.contains('dark'); localStorage.setItem('theme', is ? 'dark' : 'light'); themeToggle.textContent = is ? '☀️' : '🌙';
+    });
+
+    // ---------- helper: subscribeTyping wrapper ----------
+    function subscribeTyping(chatId) {
+      if (typingListenerRef && typingListenerRef.off) typingListenerRef.off();
+      typingIndicator.textContent = '';
+      const ref = rdb.ref('typing/' + chatId);
+      typingListenerRef = ref;
+      ref.on('value', async snap => {
+        const v = snap.val();
+        if (!v) { typingIndicator.textContent = ''; return; }
+        const other = Object.keys(v).filter(uid => uid !== (auth.currentUser && auth.currentUser.uid));
+        if (other.length === 0) { typingIndicator.textContent = ''; return; }
+        const names = [];
+        for (let i=0;i<Math.min(2,other.length);i++) {
+          try { const ud = await db.collection('users').doc(other[i]).get(); names.push(ud.exists ? ud.data().username : other[i]); } catch(e){names.push(other[i])}
         }
-
-        messagesEl.appendChild(wrapper);
-      }
-
-      // apply read receipts when partner lastRead updates
-      function applyReadReceiptsFromFirestoreTimestamp(ts) {
-        // ts is Firestore Timestamp or null
-        applyReadReceipts(ts);
-      }
-
-      // ---------- Voice recording / upload (unchanged) ----------
-      let mediaRecorder = null;
-      let audioChunks = [];
-
-      recordBtn.addEventListener("click", async () => {
-        if (!auth.currentUser) return alert("Please log in to record.");
-        try {
-          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-          mediaRecorder = new MediaRecorder(stream);
-          audioChunks = [];
-
-          mediaRecorder.ondataavailable = (e) => { if (e.data && e.data.size > 0) audioChunks.push(e.data); };
-
-          mediaRecorder.onstart = () => {
-            recordStatus.textContent = "Recording...";
-            recordBtn.style.display = "none";
-            stopBtn.style.display = "inline-block";
-            // stop typing while recording
-            setTyping(false);
-          };
-
-          mediaRecorder.onstop = async () => {
-            recordStatus.textContent = "";
-            recordBtn.style.display = "inline-block";
-            stopBtn.style.display = "none";
-
-            const blob = new Blob(audioChunks, { type: "audio/webm" });
-            const fileName = `voice_${Date.now()}.webm`;
-            const userUid = auth.currentUser.uid;
-            const storagePath = `voices/${currentChatId}/${userUid}_${fileName}`;
-            const ref = storageRef(storage, storagePath);
-
-            try {
-              await uploadBytes(ref, blob);
-              const url = await getDownloadURL(ref);
-
-              const userDoc = await getDoc(doc(db, "users", userUid));
-              const username = userDoc.exists() ? userDoc.data().username : auth.currentUser.email;
-              await addDoc(collection(db, "chats", currentChatId, "messages"), {
-                type: "audio",
-                audioUrl: url,
-                name: username,
-                uid: userUid,
-                time: serverTimestamp()
-              });
-
-              // update my lastRead after sending
-              await setDoc(doc(db, "chats", currentChatId, "lastRead", userUid), { lastRead: serverTimestamp() }, { merge: true });
-            } catch (err) {
-              console.error("Upload failed:", err);
-              alert("Audio upload failed: " + err.message);
-            }
-          };
-
-          mediaRecorder.start();
-        } catch (err) {
-          alert("Microphone access denied or not available: " + err.message);
-        }
+        typingIndicator.textContent = names.join(', ') + (other.length>2 ? ' and more are typing...' : ' is typing...');
       });
+    }
 
-      stopBtn.addEventListener("click", () => {
-        if (mediaRecorder && mediaRecorder.state !== "inactive") mediaRecorder.stop();
-      });
-
-      // ---------- chat switching & helpers ----------
-      function makeChatId(uid1, uid2) { return uid1 < uid2 ? `${uid1}_${uid2}` : `${uid2}_${uid1}`; }
-
-      async function openPrivateChat(partnerUid, partnerName) {
-        currentChatId = makeChatId(auth.currentUser.uid, partnerUid);
-        currentChatPartner = { uid: partnerUid, name: partnerName };
-        userInfo.textContent = `Private chat with ${partnerName}`;
-
-        // ensure chat doc exists with participants (useful for rules)
-        await setDoc(doc(db, "chats", currentChatId), { participants: [auth.currentUser.uid, partnerUid], createdAt: serverTimestamp() }, { merge: true });
-
-        // visually mark active user
-        document.querySelectorAll(".userItem").forEach(li => li.classList.remove("active"));
-        const activeLi = [...document.querySelectorAll(".userItem")].find(li => li.dataset.uid === partnerUid);
-        if (activeLi) activeLi.classList.add("active");
-
-        // subscribe messages & typing
-        subscribeToMessages(currentChatId);
-        onChatChanged(currentChatId);
-
-        // update my lastRead (entering chat means read)
-        updateMyLastRead();
-      }
-
-      async function openChat(chatId = "global", partner = { uid: "global", name: "Global Chat" }) {
-        currentChatId = chatId;
-        currentChatPartner = chatId === "global" ? null : partner;
-        userInfo.textContent = chatId === "global" ? "Global chat" : `Private chat with ${partner.name}`;
-
-        await setDoc(doc(db, "chats", currentChatId), { createdAt: serverTimestamp() }, { merge: true });
-
-        document.querySelectorAll(".userItem").forEach(li => li.classList.remove("active"));
-        subscribeToMessages(currentChatId);
-        onChatChanged(currentChatId);
-        updateMyLastRead();
-      }
-
-      // ---------- onAuthStateChanged ----------
-      onAuthStateChanged(auth, async (user) => {
-        if (user) {
-          authSection.style.display = "none";
-          chatSection.style.display = "block";
-          signedAs.textContent = `Signed in as ${user.email}`;
-          // start presence handling
-          startPresence();
-          // load users & default chat
-          loadUsersList();
-          openChat("global");
-        } else {
-          authSection.style.display = "block";
-          chatSection.style.display = "none";
-          signedAs.textContent = "";
-          // cleanup listeners
-          if (messagesUnsub) messagesUnsub();
-          if (usersUnsub) usersUnsub();
-          if (partnerLastReadUnsub) partnerLastReadUnsub();
-          // clear typing for previous user if any
-          if (auth.currentUser) setTyping(false);
-        }
-      });
-
-      // ---------- when messages panel is scrolled or focused, update lastRead (user is viewing) ----------
-      let markReadDebounce = null;
-      messagesEl.addEventListener("scroll", () => {
-        if (markReadDebounce) clearTimeout(markReadDebounce);
-        markReadDebounce = setTimeout(() => updateMyLastRead(), 800);
-      });
-      messagesEl.addEventListener("mouseenter", () => updateMyLastRead());
-
-      // also update lastRead when window/tab becomes visible
-      document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") updateMyLastRead(); });
-
-      // when chat changes, subscribe/unsubscribe typing
-      function onChatChanged(newChatId) { subscribeTyping(newChatId); }
-
-      // ---------- Theme toggle (preserves existing) ----------
-      if (localStorage.getItem("theme") === "dark") { document.body.classList.add("dark"); themeToggle.textContent = "☀️"; }
-      themeToggle.addEventListener("click", () => {
-        document.body.classList.toggle("dark");
-        const isDark = document.body.classList.contains("dark");
-        localStorage.setItem("theme", isDark ? "dark" : "light");
-        themeToggle.textContent = isDark ? "☀️" : "🌙";
-      });
-    </script>
-  </body>
-  </html>
+    // ---------- expose some helpers to console for debugging ----------
+    window.heychat = {
+      auth, db, rdb, storage,
+      openGlobalChat, openPrivateChat
+    };
+  });
+  </script>
+</body>
+        </html>
