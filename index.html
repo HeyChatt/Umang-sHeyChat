@@ -401,62 +401,237 @@ body.dark .received {
 
       function loadMessages() {
         const q = query(collection(db, "messages"), orderBy("time"));
-        onSnapshot(q, (snapshot) => {
-          messagesEl.innerHTML = "";
-          snapshot.forEach((docSnap) => {
-            const msg = docSnap.data();
-            const div = document.createElement("div");
-            div.classList.add("message");
-            if (msg.uid === auth.currentUser?.uid) {
-              div.classList.add("sent");
-              div.innerHTML = `<b>You</b>${msg.text}
-                <div>
-                  <button onclick="editMessage('${docSnap.id}', '${msg.text.replace(/'/g, "\\'")}')">✏️</button>
-                  <button onclick="deleteMessage('${docSnap.id}')">🗑️</button>
-                </div>`;
-            } else {
-              div.classList.add("received");
-              div.innerHTML = `<b>${msg.name || "Anon"}</b>${msg.text}`;
-            }
-            messagesEl.appendChild(div);
-          });
-          messagesEl.scrollTop = messagesEl.scrollHeight;
-        });
-      }
+<script type="module">
+  import {
+    initializeApp
+  } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+  import {
+    getAuth,
+    createUserWithEmailAndPassword,
+    signInWithEmailAndPassword,
+    onAuthStateChanged,
+    signOut
+  } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+  import {
+    getFirestore,
+    collection,
+    addDoc,
+    query,
+    orderBy,
+    onSnapshot,
+    doc,
+    getDoc,
+    setDoc,
+    updateDoc,
+    deleteDoc,
+    serverTimestamp
+  } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
-      async function editMessage(id, oldText) {
-        const newText = prompt("Edit your message:", oldText);
-        if (newText && newText.trim() !== "") {
-          await updateDoc(doc(db, "messages", id), { text: newText.trim() });
-        }
-      }
+  const firebaseConfig = {
+    apiKey: "AIzaSyAlVJcbUTlxZDd5oMUwvemk-FMiFneid80",
+    authDomain: "heychat-1aea9.firebaseapp.com",
+    projectId: "heychat-1aea9",
+    storageBucket: "heychat-1aea9.appspot.com",
+    messagingSenderId: "324327775275",
+    appId: "1:324327775275:web:28ecebf9147b87d1655e6e"
+  };
 
-      async function deleteMessage(id) {
-        if (confirm("Delete this message?")) {
-          await deleteDoc(doc(db, "messages", id));
-        }
-      }
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
 
-      document.getElementById("signupBtn").addEventListener("click", signup);
-      document.getElementById("loginBtn").addEventListener("click", login);
-      document.getElementById("logoutBtn").addEventListener("click", logout);
-      chatForm.addEventListener("submit", sendMessage);
+  // DOM
+  const emailEl = document.getElementById("email");
+  const passEl = document.getElementById("password");
+  const chatSection = document.getElementById("chatSection");
+  const authSection = document.getElementById("authSection");
+  const messagesEl = document.getElementById("messages");
+  const textEl = document.getElementById("text");
+  const chatForm = document.getElementById("chat-form");
+  const userInfo = document.getElementById("userInfo");
 
-      onAuthStateChanged(auth, (user) => {
-        if (user) {
-          authSection.style.display = "none";
-          chatSection.style.display = "flex";
-          userInfo.textContent = `Logged in as ${user.email}`;
-          loadMessages();
-        } else {
-          authSection.style.display = "block";
-          chatSection.style.display = "none";
-        }
+  let currentChatType = "global"; // "global" or "private"
+  let currentChatId = null;
+
+  async function setUsername(user) {
+    const username = prompt("Enter a username for chat:");
+    if (username && username.trim() !== "") {
+      await setDoc(doc(db, "users", user.uid), {
+        username: username.trim(),
+        email: user.email
       });
+    }
+  }
 
-      window.editMessage = editMessage;
-      window.deleteMessage = deleteMessage;
-    </script>
+  async function signup() {
+    const email = emailEl.value.trim();
+    const password = passEl.value.trim();
+    if (!email || !password) return alert("Enter email and password.");
+    try {
+      const cred = await createUserWithEmailAndPassword(auth, email, password);
+      await setUsername(cred.user);
+      alert("✅ Signup successful!");
+    } catch (err) {
+      alert("❌ " + err.message);
+    }
+  }
+
+  async function login() {
+    const email = emailEl.value.trim();
+    const password = passEl.value.trim();
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+    } catch (err) {
+      alert("❌ " + err.message);
+    }
+  }
+
+  function logout() {
+    signOut(auth);
+  }
+
+  async function sendMessage(e) {
+    e.preventDefault();
+    const text = textEl.value.trim();
+    const user = auth.currentUser;
+    if (!user || !text) return;
+
+    const userDoc = await getDoc(doc(db, "users", user.uid));
+    const username = userDoc.exists() ? userDoc.data().username : user.email;
+
+    if (currentChatType === "global") {
+      await addDoc(collection(db, "messages"), {
+        text,
+        name: username,
+        uid: user.uid,
+        time: serverTimestamp()
+      });
+    } else if (currentChatType === "private" && currentChatId) {
+      await addDoc(collection(db, "privateChats", currentChatId, "messages"), {
+        text,
+        name: username,
+        uid: user.uid,
+        time: serverTimestamp()
+      });
+    }
+    textEl.value = "";
+  }
+
+  // --- Load Global Chat
+  function loadGlobalChat() {
+    currentChatType = "global";
+    currentChatId = null;
+    messagesEl.innerHTML = "<h4>🌍 Global Chat</h4>";
+    const q = query(collection(db, "messages"), orderBy("time"));
+    onSnapshot(q, (snapshot) => {
+      messagesEl.innerHTML = "<h4>🌍 Global Chat</h4>";
+      snapshot.forEach((docSnap) => renderMessage(docSnap.data(), docSnap.id, "global"));
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+    });
+  }
+
+  // --- Load Private Chat
+  function openPrivateChat(otherUid, otherName) {
+    const user = auth.currentUser;
+    const chatId = [user.uid, otherUid].sort().join("_");
+    currentChatType = "private";
+    currentChatId = chatId;
+    messagesEl.innerHTML = `<h4>🔒 Chat with ${otherName}</h4>`;
+
+    const q = query(collection(db, "privateChats", chatId, "messages"), orderBy("time"));
+    onSnapshot(q, (snapshot) => {
+      messagesEl.innerHTML = `<h4>🔒 Chat with ${otherName}</h4>`;
+      snapshot.forEach((docSnap) => renderMessage(docSnap.data(), docSnap.id, "private"));
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+    });
+  }
+
+  // --- Render Message Helper
+  function renderMessage(msg, id, type) {
+    const div = document.createElement("div");
+    div.classList.add("message");
+    if (msg.uid === auth.currentUser?.uid) {
+      div.classList.add("sent");
+      div.innerHTML = `<b>You</b>${msg.text}
+        <div>
+          <button onclick="editMessage('${id}', '${msg.text.replace(/'/g, "\\'")}', '${type}')">✏️</button>
+          <button onclick="deleteMessage('${id}', '${type}')">🗑️</button>
+        </div>`;
+    } else {
+      div.classList.add("received");
+      div.innerHTML = `<b>${msg.name || "Anon"}</b>${msg.text}`;
+    }
+    messagesEl.appendChild(div);
+  }
+
+  // --- Edit/Delete
+  async function editMessage(id, oldText, type) {
+    const newText = prompt("Edit your message:", oldText);
+    if (!newText || newText.trim() === "") return;
+    const path =
+      type === "global"
+        ? doc(db, "messages", id)
+        : doc(db, "privateChats", currentChatId, "messages", id);
+    await updateDoc(path, { text: newText.trim() });
+  }
+
+  async function deleteMessage(id, type) {
+    if (!confirm("Delete this message?")) return;
+    const path =
+      type === "global"
+        ? doc(db, "messages", id)
+        : doc(db, "privateChats", currentChatId, "messages", id);
+    await deleteDoc(path);
+  }
+
+  // --- Show Users
+  function loadUsersList() {
+    const usersBox = document.createElement("div");
+    usersBox.id = "usersBox";
+    usersBox.style = "border-top:1px solid #ccc;padding-top:8px;margin-top:8px;";
+    usersBox.innerHTML = "<h4>👥 Users</h4>";
+    messagesEl.after(usersBox);
+
+    const q = query(collection(db, "users"));
+    onSnapshot(q, (snapshot) => {
+      usersBox.innerHTML = "<h4>👥 Users</h4>";
+      snapshot.forEach((u) => {
+        if (u.id === auth.currentUser.uid) return;
+        const data = u.data();
+        const btn = document.createElement("button");
+        btn.textContent = data.username || data.email;
+        btn.style =
+          "margin:4px;padding:6px 10px;border-radius:8px;border:none;background:#e8e8e8;cursor:pointer;";
+        btn.onclick = () => openPrivateChat(u.id, data.username || data.email);
+        usersBox.appendChild(btn);
+      });
+    });
+  }
+
+  // --- Auth State
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      authSection.style.display = "none";
+      chatSection.style.display = "flex";
+      userInfo.textContent = `Logged in as ${user.email}`;
+      loadGlobalChat();
+      loadUsersList();
+    } else {
+      authSection.style.display = "block";
+      chatSection.style.display = "none";
+    }
+  });
+
+  // --- Events
+  document.getElementById("signupBtn").addEventListener("click", signup);
+  document.getElementById("loginBtn").addEventListener("click", login);
+  document.getElementById("logoutBtn").addEventListener("click", logout);
+  chatForm.addEventListener("submit", sendMessage);
+
+  // Expose
+  window.editMessage = editMessage;
+  window.deleteMessage = deleteMessage;
+</script>
 
     <!-- 🌙 DARK MODE -->
     <script>
